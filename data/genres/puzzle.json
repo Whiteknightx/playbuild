@@ -1,0 +1,919 @@
+{
+  "genre_id": "puzzle",
+  "genre_name": "Puzzle",
+  "games": [
+    {
+      "app_id": 1659040,
+      "name": "HITMAN World of Assassination",
+      "capsule_url": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1659040/header.jpg",
+      "dominant_colors": [
+        "#2a2c30",
+        "#0d0a0b",
+        "#5e6268"
+      ],
+      "tags": [
+        "Stealth",
+        "Assassins",
+        "Singleplayer",
+        "VR",
+        "Action",
+        "Sandbox",
+        "Multiplayer",
+        "Violent",
+        "Shooter",
+        "Third Person",
+        "Third-Person Shooter",
+        "Open World",
+        "Realistic",
+        "Puzzle",
+        "Adventure",
+        "Cinematic",
+        "Gore",
+        "Immersive Sim",
+        "Funny",
+        "Capitalism"
+      ]
+    },
+    {
+      "app_id": 4197610,
+      "name": "Librarian: Tidy Up the Arcane Library!",
+      "capsule_url": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4197610/header.jpg",
+      "dominant_colors": [
+        "#0c0c1d",
+        "#8b5cf6",
+        "#f59e0b"
+      ],
+      "tags": [
+        "Relaxing",
+        "Collectathon",
+        "Organizing",
+        "Artificial Intelligence",
+        "Puzzle",
+        "Hidden Object",
+        "Casual",
+        "Simulation",
+        "Singleplayer",
+        "3D",
+        "Magic",
+        "Fantasy",
+        "Immersive Sim",
+        "Funny",
+        "Atmospheric",
+        "Realistic",
+        "Tactical",
+        "Indie",
+        "Score Attack",
+        "Memes"
+      ]
+    },
+    {
+      "app_id": 1426210,
+      "name": "It Takes Two",
+      "capsule_url": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1426210/header.jpg",
+      "dominant_colors": [
+        "#443130",
+        "#9d866f",
+        "#e8d2a0"
+      ],
+      "tags": [
+        "Co-op",
+        "Multiplayer",
+        "Split Screen",
+        "Local Co-Op",
+        "Online Co-Op",
+        "Puzzle",
+        "Adventure",
+        "Story Rich",
+        "Co-op Campaign",
+        "Local Multiplayer",
+        "Puzzle Platformer",
+        "Action-Adventure",
+        "3D Platformer",
+        "Emotional",
+        "Platformer",
+        "Action",
+        "Exploration",
+        "Atmospheric",
+        "Minigames",
+        "Female Protagonist"
+      ]
+    },
+    {
+      "app_id": 2995920,
+      "name": "It Takes Two Friend's Pass",
+      "capsule_url": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2995920/header.jpg",
+      "dominant_colors": [
+        "#522727",
+        "#e4cea1",
+        "#957c68"
+      ],
+      "tags": [
+        "Co-op",
+        "Multiplayer",
+        "Split Screen",
+        "Local Co-Op",
+        "Online Co-Op",
+        "Puzzle",
+        "Adventure",
+        "Story Rich",
+        "Co-op Campaign",
+        "Local Multiplayer",
+        "Puzzle Platformer",
+        "Action-Adventure",
+        "3D Platformer",
+        "Emotional",
+        "Platformer",
+        "Action",
+        "Exploration",
+        "Atmospheric",
+        "Minigames",
+        "Female Protagonist"
+      ]
+    },
+    {
+      "app_id": 2141730,
+      "name": "Backrooms: Escape Together",
+      "capsule_url": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2141730/header.jpg",
+      "dominant_colors": [
+        "#413209",
+        "#836d1e",
+        "#c4b75b"
+      ],
+      "tags": [
+        "Multiplayer",
+        "Horror",
+        "Online Co-Op",
+        "Psychological Horror",
+        "Survival Horror",
+        "Co-op",
+        "Atmospheric",
+        "First-Person",
+        "Realistic",
+        "Early Access",
+        "Exploration",
+        "Procedural Generation",
+        "Adventure",
+        "Puzzle",
+        "Casual",
+        "Action",
+        "3D",
+        "Singleplayer",
+        "Action-Adventure",
+        "Sci-fi"
+      ]
+    },
+    {
+      "app_id": 1659420,
+      "name": "UNCHARTED\u2122: Legacy of Thieves Collection",
+      "capsule_url": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1659420/header.jpg",
+      "dominant_colors": [
+        "#243341",
+        "#1b242f",
+        "#586573"
+      ],
+      "tags": [
+        "Adventure",
+        "Story Rich",
+        "Action-Adventure",
+        "Singleplayer",
+        "Multiplayer",
+        "Third Person",
+        "Puzzle",
+        "Third-Person Shooter",
+        "Action",
+        "Exploration",
+        "Shooter",
+        "Parkour",
+        "Cinematic",
+        "Controller",
+        "Stealth",
+        "Atmospheric",
+        "Female Protagonist",
+        "Combat",
+        "Funny",
+        "Platformer"
+      ]
+    },
+    {
+      "app_id": 1289670,
+      "name": "EA Play",
+      "capsule_url": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1289670/header.jpg",
+      "dominant_colors": [
+        "#261731",
+        "#754a4f",
+        "#93a18b"
+      ],
+      "tags": [
+        "Sports",
+        "Shooter",
+        "Multiplayer",
+        "RTS",
+        "Puzzle",
+        "Simulation",
+        "Racing",
+        "Action-Adventure",
+        "Adventure",
+        "Strategy",
+        "Family Friendly",
+        "Action",
+        "Co-op",
+        "RPG",
+        "Story Rich",
+        "Casual",
+        "Competitive",
+        "PvP",
+        "Early Access",
+        "Battle Royale"
+      ]
+    },
+    {
+      "app_id": 990080,
+      "name": "Hogwarts Legacy",
+      "capsule_url": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/990080/header.jpg",
+      "dominant_colors": [
+        "#4e5a59",
+        "#9d9b8d",
+        "#d1ccb7"
+      ],
+      "tags": [
+        "Magic",
+        "Open World",
+        "Fantasy",
+        "Singleplayer",
+        "Adventure",
+        "RPG",
+        "Character Customization",
+        "Exploration",
+        "Story Rich",
+        "Third Person",
+        "Action-Adventure",
+        "Atmospheric",
+        "Action RPG",
+        "Action",
+        "Combat",
+        "Choices Matter",
+        "Puzzle",
+        "Great Soundtrack",
+        "Dark",
+        "Family Friendly"
+      ]
+    },
+    {
+      "app_id": 753640,
+      "name": "Outer Wilds",
+      "capsule_url": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/753640/header.jpg",
+      "dominant_colors": [
+        "#010202",
+        "#141d20",
+        "#5f5039"
+      ],
+      "tags": [
+        "Exploration",
+        "Space",
+        "Mystery",
+        "Story Rich",
+        "Adventure",
+        "Great Soundtrack",
+        "Atmospheric",
+        "Puzzle",
+        "Open World",
+        "Singleplayer",
+        "Indie",
+        "Sci-fi",
+        "Horror",
+        "First-Person",
+        "Beautiful",
+        "Psychological Horror",
+        "Epic",
+        "3D",
+        "Simulation",
+        "Action"
+      ]
+    },
+    {
+      "app_id": 2129530,
+      "name": "REANIMAL",
+      "capsule_url": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2129530/header.jpg",
+      "dominant_colors": [
+        "#19496b",
+        "#2f273e",
+        "#1f5b7b"
+      ],
+      "tags": [
+        "Horror",
+        "Co-op",
+        "Adventure",
+        "Atmospheric",
+        "Multiplayer",
+        "Dark",
+        "Local Co-Op",
+        "Puzzle",
+        "3D",
+        "Third Person",
+        "Online Co-Op",
+        "Cinematic",
+        "Local Multiplayer",
+        "Exploration",
+        "Surreal",
+        "Controller",
+        "Stealth",
+        "Stylized",
+        "Mystery",
+        "Singleplayer"
+      ]
+    },
+    {
+      "app_id": 2677660,
+      "name": "Indiana Jones and the Great Circle",
+      "capsule_url": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2677660/header.jpg",
+      "dominant_colors": [
+        "#a25816",
+        "#cc8b2f",
+        "#e4b659"
+      ],
+      "tags": [
+        "Action-Adventure",
+        "First-Person",
+        "Story Rich",
+        "Puzzle",
+        "Singleplayer",
+        "Adventure",
+        "Exploration",
+        "Historical",
+        "Stealth",
+        "Open World",
+        "Action",
+        "World War II",
+        "Investigation",
+        "3D Platformer",
+        "Realistic",
+        "3D",
+        "Immersive Sim",
+        "Platformer",
+        "Political",
+        "Politics"
+      ]
+    },
+    {
+      "app_id": 418370,
+      "name": "Resident Evil 7 Biohazard",
+      "capsule_url": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/418370/header.jpg",
+      "dominant_colors": [
+        "#dac7ab",
+        "#9c7e63",
+        "#e9dcc8"
+      ],
+      "tags": [
+        "Horror",
+        "Survival Horror",
+        "First-Person",
+        "Singleplayer",
+        "VR",
+        "Gore",
+        "Atmospheric",
+        "Zombies",
+        "Psychological Horror",
+        "Action",
+        "Violent",
+        "Survival",
+        "Puzzle",
+        "Multiplayer",
+        "Story Rich",
+        "Adventure",
+        "FPS",
+        "Exploration",
+        "Shooter",
+        "Classic"
+      ]
+    },
+    {
+      "app_id": 1332010,
+      "name": "Stray",
+      "capsule_url": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1332010/header.jpg",
+      "dominant_colors": [
+        "#5d1417",
+        "#5e291f",
+        "#886f52"
+      ],
+      "tags": [
+        "Cats",
+        "Adventure",
+        "Atmospheric",
+        "Cyberpunk",
+        "Singleplayer",
+        "Cute",
+        "Exploration",
+        "Robots",
+        "Puzzle",
+        "Beautiful",
+        "Third Person",
+        "Horror",
+        "Indie",
+        "Sci-fi",
+        "Dystopian",
+        "Open World",
+        "Mystery",
+        "Action",
+        "Colorful",
+        "Stealth"
+      ]
+    },
+    {
+      "app_id": 752590,
+      "name": "A Plague Tale: Innocence",
+      "capsule_url": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/752590/header.jpg",
+      "dominant_colors": [
+        "#ffffff",
+        "#8e8f91",
+        "#fefdfc"
+      ],
+      "tags": [
+        "Story Rich",
+        "Adventure",
+        "Stealth",
+        "Female Protagonist",
+        "Medieval",
+        "Atmospheric",
+        "Singleplayer",
+        "Third Person",
+        "Action",
+        "Dark",
+        "Horror",
+        "Historical",
+        "Great Soundtrack",
+        "Emotional",
+        "Violent",
+        "Survival",
+        "Puzzle",
+        "Dark Fantasy",
+        "Post-apocalyptic",
+        "Walking Simulator"
+      ]
+    },
+    {
+      "app_id": 883710,
+      "name": "Resident Evil 2",
+      "capsule_url": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/883710/header.jpg",
+      "dominant_colors": [
+        "#1b181b",
+        "#585e62",
+        "#b8bdb3"
+      ],
+      "tags": [
+        "Zombies",
+        "Survival Horror",
+        "Horror",
+        "Singleplayer",
+        "Remake",
+        "Third Person",
+        "Gore",
+        "Action",
+        "Puzzle",
+        "Atmospheric",
+        "Story Rich",
+        "Multiplayer",
+        "Violent",
+        "Survival",
+        "Classic",
+        "Female Protagonist",
+        "Dark",
+        "Shooter",
+        "Adventure",
+        "Difficult"
+      ]
+    },
+    {
+      "app_id": 208650,
+      "name": "Batman\u2122: Arkham Knight",
+      "capsule_url": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/208650/header.jpg",
+      "dominant_colors": [
+        "#0c0c1d",
+        "#8b5cf6",
+        "#f59e0b"
+      ],
+      "tags": [
+        "Action",
+        "Open World",
+        "Superhero",
+        "Stealth",
+        "Singleplayer",
+        "Third Person",
+        "Adventure",
+        "Detective",
+        "Story Rich",
+        "Fighting",
+        "Atmospheric",
+        "Dark",
+        "Comic Book",
+        "Beat 'em up",
+        "Puzzle",
+        "Horror",
+        "Sandbox",
+        "Epic",
+        "Strategy",
+        "Multiplayer"
+      ]
+    },
+    {
+      "app_id": 1167630,
+      "name": "Teardown",
+      "capsule_url": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1167630/header.jpg",
+      "dominant_colors": [
+        "#322c2b",
+        "#6c6666",
+        "#9c9d9c"
+      ],
+      "tags": [
+        "Destruction",
+        "Physics",
+        "Sandbox",
+        "Voxel",
+        "Multiplayer",
+        "Heist",
+        "Singleplayer",
+        "Indie",
+        "First-Person",
+        "Replay Value",
+        "Co-op",
+        "Co-op Campaign",
+        "Mod",
+        "3D",
+        "Simulation",
+        "Action",
+        "Driving",
+        "Realistic",
+        "Online Co-Op",
+        "Puzzle"
+      ]
+    },
+    {
+      "app_id": 477160,
+      "name": "Human Fall Flat",
+      "capsule_url": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/477160/header.jpg",
+      "dominant_colors": [
+        "#594539",
+        "#8c9188",
+        "#b5c8c8"
+      ],
+      "tags": [
+        "Co-op",
+        "Funny",
+        "Puzzle",
+        "Multiplayer",
+        "Adventure",
+        "Physics",
+        "Sandbox",
+        "Puzzle Platformer",
+        "Open World",
+        "Action",
+        "Local Co-Op",
+        "Indie",
+        "Local Multiplayer",
+        "Comedy",
+        "Parkour",
+        "Casual",
+        "Split Screen",
+        "Singleplayer",
+        "3D Platformer",
+        "Simulation"
+      ]
+    },
+    {
+      "app_id": 4128580,
+      "name": "BidKing",
+      "capsule_url": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4128580/header.jpg",
+      "dominant_colors": [
+        "#0c0c1d",
+        "#8b5cf6",
+        "#f59e0b"
+      ],
+      "tags": [
+        "Strategy",
+        "Casual",
+        "Simulation",
+        "MOBA",
+        "Life Sim",
+        "Massively Multiplayer",
+        "Shop Keeper",
+        "Trivia",
+        "Puzzle",
+        "Exploration",
+        "2D",
+        "Trading",
+        "Multiplayer",
+        "Resource Management",
+        "Solitaire",
+        "Realistic",
+        "Artificial Intelligence",
+        "Loot",
+        "Stylized",
+        "Military"
+      ]
+    },
+    {
+      "app_id": 953490,
+      "name": "CARRION",
+      "capsule_url": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/953490/header.jpg",
+      "dominant_colors": [
+        "#1d0817",
+        "#411728",
+        "#97575d"
+      ],
+      "tags": [
+        "Gore",
+        "Villain Protagonist",
+        "Pixel Graphics",
+        "Metroidvania",
+        "Action",
+        "Horror",
+        "Indie",
+        "Violent",
+        "2D",
+        "Singleplayer",
+        "Adventure",
+        "Puzzle",
+        "Physics",
+        "Lovecraftian",
+        "Sci-fi",
+        "Atmospheric",
+        "Platformer",
+        "Great Soundtrack",
+        "Stealth",
+        "Cute"
+      ]
+    },
+    {
+      "app_id": 1569580,
+      "name": "Blue Prince",
+      "capsule_url": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1569580/header.jpg",
+      "dominant_colors": [
+        "#12243a",
+        "#183952",
+        "#3c657f"
+      ],
+      "tags": [
+        "Puzzle",
+        "Mystery",
+        "Exploration",
+        "Investigation",
+        "Roguelite",
+        "Singleplayer",
+        "Story Rich",
+        "First-Person",
+        "Indie",
+        "Adventure",
+        "Atmospheric",
+        "Roguelike",
+        "Escape Room",
+        "3D",
+        "Strategy",
+        "Simulation",
+        "Nonlinear",
+        "Stylized",
+        "Replay Value",
+        "Level Editor"
+      ]
+    },
+    {
+      "app_id": 3326230,
+      "name": "Hozy",
+      "capsule_url": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3326230/header.jpg",
+      "dominant_colors": [
+        "#504f4d",
+        "#f2f2f2",
+        "#979695"
+      ],
+      "tags": [
+        "Relaxing",
+        "Cozy",
+        "Casual",
+        "Sandbox",
+        "Puzzle",
+        "Cute",
+        "Physics",
+        "Colorful",
+        "Simulation",
+        "Building",
+        "Immersive Sim",
+        "3D",
+        "Family Friendly",
+        "Realistic",
+        "Singleplayer",
+        "Indie",
+        "Stylized",
+        "Management",
+        "Wholesome",
+        "Replay Value"
+      ]
+    },
+    {
+      "app_id": 668580,
+      "name": "Atomic Heart",
+      "capsule_url": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/668580/header.jpg",
+      "dominant_colors": [
+        "#3b3232",
+        "#e6e8e7",
+        "#cfcfcd"
+      ],
+      "tags": [
+        "Adventure",
+        "Action",
+        "FPS",
+        "Sexual Content",
+        "Open World",
+        "Singleplayer",
+        "Action-Adventure",
+        "Horror",
+        "Puzzle",
+        "Mystery",
+        "Shooter",
+        "Sci-fi",
+        "RPG",
+        "First-Person",
+        "Cyberpunk",
+        "Alternate History",
+        "Robots",
+        "Exploration",
+        "Gore",
+        "Atmospheric"
+      ]
+    },
+    {
+      "app_id": 1190000,
+      "name": "Car Mechanic Simulator 2021",
+      "capsule_url": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1190000/header.jpg",
+      "dominant_colors": [
+        "#362a25",
+        "#6b5c48",
+        "#c1a25a"
+      ],
+      "tags": [
+        "Simulation",
+        "Automobile Sim",
+        "Realistic",
+        "Sandbox",
+        "Moddable",
+        "Driving",
+        "Singleplayer",
+        "Racing",
+        "3D",
+        "Education",
+        "First-Person",
+        "Co-op",
+        "Puzzle",
+        "Immersive Sim",
+        "Open World",
+        "Atmospheric",
+        "Adventure",
+        "VR",
+        "Minigames",
+        "Indie"
+      ]
+    },
+    {
+      "app_id": 2879840,
+      "name": "Escape Simulator 2",
+      "capsule_url": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2879840/header.jpg",
+      "dominant_colors": [
+        "#0c0c1d",
+        "#8b5cf6",
+        "#f59e0b"
+      ],
+      "tags": [
+        "Co-op",
+        "Logic",
+        "Puzzle",
+        "Escape Room",
+        "Level Editor",
+        "Atmospheric",
+        "Adventure",
+        "Casual",
+        "Indie",
+        "First-Person",
+        "Hidden Object",
+        "Exploration",
+        "Online Co-Op",
+        "Character Customization",
+        "Mystery",
+        "Simulation",
+        "Detective",
+        "Point & Click",
+        "Singleplayer",
+        "Investigation"
+      ]
+    }
+  ],
+  "blueprint": [
+    {
+      "section": "Intellectual Hook",
+      "description": "Explain the unique visual perspective, reality-bending rules, or primary cognitive challenge.",
+      "avg_percent": "25%"
+    },
+    {
+      "section": "Mechanic Progression",
+      "description": "Explain how complexity escalates: introducing new tiles, gravity manipulation, perspective shifts, or logic gates.",
+      "avg_percent": "35%"
+    },
+    {
+      "section": "Atmosphere / Mood",
+      "description": "Describe the relaxing visual aesthetics, ambient music, lack of timers/deadlines, or background mystery narrative.",
+      "avg_percent": "20%"
+    },
+    {
+      "section": "Key Features",
+      "description": "Bullet-point list: level editor, relaxing soundtracks, accessibility settings, number of unique levels, and hint systems.",
+      "avg_percent": "20%"
+    }
+  ],
+  "key_phrases": [
+    "bend your mind",
+    "no rush or timers",
+    "relaxing atmosphere",
+    "hundreds of puzzles",
+    "manipulate perspective"
+  ],
+  "common_features": [
+    "Level Progression",
+    "Logic Puzzles",
+    "Atmospheric Audio",
+    "No Timers",
+    "Minimalist Design"
+  ],
+  "top_tags": [
+    {
+      "tag": "Puzzle",
+      "count": 25,
+      "percentage": 100
+    },
+    {
+      "tag": "Singleplayer",
+      "count": 21,
+      "percentage": 84
+    },
+    {
+      "tag": "Adventure",
+      "count": 21,
+      "percentage": 84
+    },
+    {
+      "tag": "Action",
+      "count": 18,
+      "percentage": 72
+    },
+    {
+      "tag": "Atmospheric",
+      "count": 18,
+      "percentage": 72
+    },
+    {
+      "tag": "Exploration",
+      "count": 14,
+      "percentage": 56
+    },
+    {
+      "tag": "Multiplayer",
+      "count": 13,
+      "percentage": 52
+    },
+    {
+      "tag": "Story Rich",
+      "count": 12,
+      "percentage": 48
+    },
+    {
+      "tag": "Simulation",
+      "count": 10,
+      "percentage": 40
+    },
+    {
+      "tag": "Indie",
+      "count": 10,
+      "percentage": 40
+    },
+    {
+      "tag": "Horror",
+      "count": 10,
+      "percentage": 40
+    },
+    {
+      "tag": "Open World",
+      "count": 9,
+      "percentage": 36
+    },
+    {
+      "tag": "3D",
+      "count": 9,
+      "percentage": 36
+    },
+    {
+      "tag": "Co-op",
+      "count": 9,
+      "percentage": 36
+    },
+    {
+      "tag": "First-Person",
+      "count": 9,
+      "percentage": 36
+    }
+  ]
+}

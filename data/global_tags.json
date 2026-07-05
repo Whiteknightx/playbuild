@@ -1,0 +1,402 @@
+[
+  {
+    "tag": "Puzzle",
+    "count": 25
+  },
+  {
+    "tag": "Singleplayer",
+    "count": 21
+  },
+  {
+    "tag": "Adventure",
+    "count": 21
+  },
+  {
+    "tag": "Action",
+    "count": 18
+  },
+  {
+    "tag": "Atmospheric",
+    "count": 18
+  },
+  {
+    "tag": "Exploration",
+    "count": 14
+  },
+  {
+    "tag": "Multiplayer",
+    "count": 13
+  },
+  {
+    "tag": "Story Rich",
+    "count": 12
+  },
+  {
+    "tag": "Simulation",
+    "count": 10
+  },
+  {
+    "tag": "Indie",
+    "count": 10
+  },
+  {
+    "tag": "Horror",
+    "count": 10
+  },
+  {
+    "tag": "Open World",
+    "count": 9
+  },
+  {
+    "tag": "3D",
+    "count": 9
+  },
+  {
+    "tag": "Co-op",
+    "count": 9
+  },
+  {
+    "tag": "First-Person",
+    "count": 9
+  },
+  {
+    "tag": "Stealth",
+    "count": 8
+  },
+  {
+    "tag": "Third Person",
+    "count": 8
+  },
+  {
+    "tag": "Realistic",
+    "count": 8
+  },
+  {
+    "tag": "Action-Adventure",
+    "count": 8
+  },
+  {
+    "tag": "Casual",
+    "count": 7
+  },
+  {
+    "tag": "Sandbox",
+    "count": 6
+  },
+  {
+    "tag": "Shooter",
+    "count": 6
+  },
+  {
+    "tag": "Online Co-Op",
+    "count": 6
+  },
+  {
+    "tag": "Mystery",
+    "count": 6
+  },
+  {
+    "tag": "Violent",
+    "count": 5
+  },
+  {
+    "tag": "Gore",
+    "count": 5
+  },
+  {
+    "tag": "Immersive Sim",
+    "count": 5
+  },
+  {
+    "tag": "Platformer",
+    "count": 5
+  },
+  {
+    "tag": "Female Protagonist",
+    "count": 5
+  },
+  {
+    "tag": "Sci-fi",
+    "count": 5
+  },
+  {
+    "tag": "Dark",
+    "count": 5
+  },
+  {
+    "tag": "Funny",
+    "count": 4
+  },
+  {
+    "tag": "Local Co-Op",
+    "count": 4
+  },
+  {
+    "tag": "Local Multiplayer",
+    "count": 4
+  },
+  {
+    "tag": "3D Platformer",
+    "count": 4
+  },
+  {
+    "tag": "Strategy",
+    "count": 4
+  },
+  {
+    "tag": "Great Soundtrack",
+    "count": 4
+  },
+  {
+    "tag": "Stylized",
+    "count": 4
+  },
+  {
+    "tag": "Physics",
+    "count": 4
+  },
+  {
+    "tag": "VR",
+    "count": 3
+  },
+  {
+    "tag": "Cinematic",
+    "count": 3
+  },
+  {
+    "tag": "Split Screen",
+    "count": 3
+  },
+  {
+    "tag": "Co-op Campaign",
+    "count": 3
+  },
+  {
+    "tag": "Puzzle Platformer",
+    "count": 3
+  },
+  {
+    "tag": "Emotional",
+    "count": 3
+  },
+  {
+    "tag": "Minigames",
+    "count": 3
+  },
+  {
+    "tag": "Psychological Horror",
+    "count": 3
+  },
+  {
+    "tag": "Survival Horror",
+    "count": 3
+  },
+  {
+    "tag": "Family Friendly",
+    "count": 3
+  },
+  {
+    "tag": "RPG",
+    "count": 3
+  },
+  {
+    "tag": "Investigation",
+    "count": 3
+  },
+  {
+    "tag": "Survival",
+    "count": 3
+  },
+  {
+    "tag": "Cute",
+    "count": 3
+  },
+  {
+    "tag": "Replay Value",
+    "count": 3
+  },
+  {
+    "tag": "Third-Person Shooter",
+    "count": 2
+  },
+  {
+    "tag": "Relaxing",
+    "count": 2
+  },
+  {
+    "tag": "Artificial Intelligence",
+    "count": 2
+  },
+  {
+    "tag": "Hidden Object",
+    "count": 2
+  },
+  {
+    "tag": "Magic",
+    "count": 2
+  },
+  {
+    "tag": "Fantasy",
+    "count": 2
+  },
+  {
+    "tag": "Early Access",
+    "count": 2
+  },
+  {
+    "tag": "Parkour",
+    "count": 2
+  },
+  {
+    "tag": "Controller",
+    "count": 2
+  },
+  {
+    "tag": "Combat",
+    "count": 2
+  },
+  {
+    "tag": "Racing",
+    "count": 2
+  },
+  {
+    "tag": "Character Customization",
+    "count": 2
+  },
+  {
+    "tag": "Beautiful",
+    "count": 2
+  },
+  {
+    "tag": "Epic",
+    "count": 2
+  },
+  {
+    "tag": "Historical",
+    "count": 2
+  },
+  {
+    "tag": "Zombies",
+    "count": 2
+  },
+  {
+    "tag": "FPS",
+    "count": 2
+  },
+  {
+    "tag": "Classic",
+    "count": 2
+  },
+  {
+    "tag": "Cyberpunk",
+    "count": 2
+  },
+  {
+    "tag": "Robots",
+    "count": 2
+  },
+  {
+    "tag": "Colorful",
+    "count": 2
+  },
+  {
+    "tag": "Detective",
+    "count": 2
+  },
+  {
+    "tag": "Driving",
+    "count": 2
+  },
+  {
+    "tag": "2D",
+    "count": 2
+  },
+  {
+    "tag": "Escape Room",
+    "count": 2
+  },
+  {
+    "tag": "Level Editor",
+    "count": 2
+  },
+  {
+    "tag": "Assassins",
+    "count": 1
+  },
+  {
+    "tag": "Capitalism",
+    "count": 1
+  },
+  {
+    "tag": "Collectathon",
+    "count": 1
+  },
+  {
+    "tag": "Organizing",
+    "count": 1
+  },
+  {
+    "tag": "Tactical",
+    "count": 1
+  },
+  {
+    "tag": "Score Attack",
+    "count": 1
+  },
+  {
+    "tag": "Memes",
+    "count": 1
+  },
+  {
+    "tag": "Procedural Generation",
+    "count": 1
+  },
+  {
+    "tag": "Sports",
+    "count": 1
+  },
+  {
+    "tag": "RTS",
+    "count": 1
+  },
+  {
+    "tag": "Competitive",
+    "count": 1
+  },
+  {
+    "tag": "PvP",
+    "count": 1
+  },
+  {
+    "tag": "Battle Royale",
+    "count": 1
+  },
+  {
+    "tag": "Action RPG",
+    "count": 1
+  },
+  {
+    "tag": "Choices Matter",
+    "count": 1
+  },
+  {
+    "tag": "Space",
+    "count": 1
+  },
+  {
+    "tag": "Surreal",
+    "count": 1
+  },
+  {
+    "tag": "World War II",
+    "count": 1
+  },
+  {
+    "tag": "Political",
+    "count": 1
+  },
+  {
+    "tag": "Politics",
+    "count": 1
+  }
+]

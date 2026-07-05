@@ -1,0 +1,40 @@
+name: PlayBuild Data Scraper
+
+on:
+  schedule:
+    - cron: "0 0 * * 0"  # Every Sunday at midnight
+  workflow_dispatch:      # Manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests pillow
+
+      - name: Run Scraper
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python playbuild_scraper.py
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "PlayBuild Bot"
+          git config user.email "playbuild-bot@users.noreply.github.com"
+          git add data/
+          git diff --staged --quiet || git commit -m "chore: update scraped genre stats [skip ci]"
+          git push origin main
