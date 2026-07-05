@@ -7,8 +7,7 @@ import requests
 from io import BytesIO
 from PIL import Image
 from bs4 import BeautifulSoup
-
-# Ensure stdout handles UTF-8 correctly
+import concurrent.futures
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
@@ -264,42 +263,53 @@ def main():
         descriptions_to_analyze = []
         tag_counts = {}
         
-        for idx, item in enumerate(items):
+        def process_item(idx, item):
             app_id = extract_app_id(item.get("logo", ""))
             name = item.get("name", "Unknown Game")
             if not app_id:
-                continue
+                return None
                 
             print(f"[{idx+1}/{len(items)}] Processing {name} (AppID: {app_id})...")
             
-            # Dominant Colors
             colors = get_dominant_colors(app_id)
-            
-            # Scrape tags and descriptions
             details = scrape_game_details(app_id)
             if not details:
-                time.sleep(1)
-                continue
+                return None
                 
-            tags = details["tags"]
-            for t in tags:
-                tag_counts[t] = tag_counts.get(t, 0) + 1
-                global_tags[t] = global_tags.get(t, 0) + 1
-                
-            game_record = {
+            return {
                 "app_id": app_id,
                 "name": name,
                 "capsule_url": f"https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/{app_id}/header.jpg",
                 "dominant_colors": colors,
-                "tags": tags
+                "tags": details["tags"],
+                "details": details
             }
-            scraped_games.append(game_record)
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+            futures = [executor.submit(process_item, idx, item) for idx, item in enumerate(items)]
             
-            # Keep descriptions for top 5 games to feed Gemini blueprint generator
-            if len(descriptions_to_analyze) < 5 and details["long_description"]:
-                descriptions_to_analyze.append(details["long_description"][:1000]) # Limit length
+            for future in concurrent.futures.as_completed(futures):
+                res = future.result()
+                if not res:
+                    continue
+                    
+                tags = res["tags"]
+                for t in tags:
+                    tag_counts[t] = tag_counts.get(t, 0) + 1
+                    global_tags[t] = global_tags.get(t, 0) + 1
+                    
+                game_record = {
+                    "app_id": res["app_id"],
+                    "name": res["name"],
+                    "capsule_url": res["capsule_url"],
+                    "dominant_colors": res["dominant_colors"],
+                    "tags": tags
+                }
+                scraped_games.append(game_record)
                 
-            time.sleep(1.5) # Polite crawl gap
+                details = res["details"]
+                if len(descriptions_to_analyze) < 5 and details["long_description"]:
+                    descriptions_to_analyze.append(details["long_description"][:1000])
             
         # Top Tags mapping
         sorted_tags = sorted(tag_counts.items(), key=lambda x: x[1], reverse=True)
