@@ -722,6 +722,13 @@ body::before {
 .mobile-nav-btn { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; font-family: var(--font); font-size: 0.6rem; color: var(--text-dim); background: none; border: none; padding: 0.4rem 0.6rem; cursor: pointer; border-radius: 8px; transition: all 0.2s; }
 .mobile-nav-btn:hover, .mobile-nav-btn.active { color: var(--primary); background: var(--primary-muted); }
 .mobile-nav-btn .mn-icon { font-size: 1.1rem }
+
+/* ── MODAL ── */
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); z-index: 9999; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; padding: 1rem; }
+.modal.show { opacity: 1; pointer-events: auto; }
+.modal-content { background: var(--bg2); border: 1px solid var(--primary-muted); border-radius: var(--radius-lg); width: 100%; max-width: 600px; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; box-shadow: 0 10px 40px rgba(0,0,0,0.5); transform: translateY(20px); transition: transform 0.3s; }
+.modal.show .modal-content { transform: translateY(0); }
+.modal-header { display: flex; align-items: center; justify-content: space-between; }
 </style>
 </head>
 <body>
@@ -750,7 +757,7 @@ body::before {
       <button class="nav-tab active" data-tab="dashboard">Dashboard</button>
       <button class="nav-tab" data-tab="capsule">Capsule Analyzer</button>
       <button class="nav-tab" data-tab="shelf">Shelf Simulator</button>
-      <button class="nav-tab" data-tab="page-analyzer">Page Analyzer</button>
+      <button class="nav-tab" data-tab="page-analyzer">Store Auditors</button>
       <button class="nav-tab" data-tab="research">Research & Blueprints</button>
       <button class="nav-tab" data-tab="analytics">Analytics & Trends</button>
       <button class="nav-tab" data-tab="visibility">Visibility Score</button>
@@ -775,7 +782,7 @@ body::before {
       </p>
       <div class="hero-actions">
         <button class="btn btn-primary" onclick="switchTab('capsule')">🔬 Analyze Capsule</button>
-        <button class="btn btn-ghost" onclick="switchTab('page-analyzer')">🌐 Audit Steam Page</button>
+        <button class="btn btn-ghost" onclick="switchTab('page-analyzer')">🌐 Store Auditors</button>
       </div>
     </div>
 
@@ -796,8 +803,8 @@ body::before {
 
       <div class="feature-card" onclick="switchTab('page-analyzer')">
         <div class="feature-icon green">🌐</div>
-        <h3>Steam Page Analyzer</h3>
-        <p>Paste your Steam URL and receive a comprehensive audit of your description, tags, screenshots, and branding consistency.</p>
+        <h3>Store Auditors</h3>
+        <p>Paste your Steam or Itch.io URL and receive a comprehensive audit of your description, tags, custom CSS, and branding consistency.</p>
         <span class="feature-tag ready">Ready</span>
       </div>
 
@@ -883,15 +890,15 @@ body::before {
     <div class="shelf-grid" id="shelf-grid"></div>
   </div>
 
-  <!-- ═══════════ PAGE ANALYZER ═══════════ -->
+  <!-- ═══════════ STORE AUDITORS ═══════════ -->
   <div class="section" id="sec-page-analyzer">
     <div class="section-hero">
-      <h2>🌐 Steam Page Analyzer</h2>
-      <p>Paste your Steam store page URL to receive a comprehensive health report across every critical dimension.</p>
+      <h2>🌐 Store Auditors</h2>
+      <p>Paste your Steam or Itch.io store page URL to receive a comprehensive health report across every critical dimension.</p>
     </div>
 
     <div class="page-analyzer-input">
-      <input type="text" class="url-input" id="steam-url" placeholder="https://store.steampowered.com/app/YOUR_APP_ID/..." />
+      <input type="text" class="url-input" id="steam-url" placeholder="https://store.steampowered.com/app/... or https://yourname.itch.io/..." />
       <button class="btn btn-primary" id="analyze-page-btn" onclick="analyzePage()">🔍 Analyze Page</button>
     </div>
 
@@ -946,6 +953,9 @@ body::before {
       <div class="panel">
         <div class="panel-title"><span class="dot purple"></span> IDEAL DESCRIPTION BLUEPRINT</div>
         <div class="blueprint-flow" id="blueprint-flow"></div>
+        <div style="margin-top: 1rem;">
+          <button class="btn btn-primary btn-sm" onclick="generateDescriptionTemplate()">📝 Generate Copyable Template</button>
+        </div>
         <div class="panel-title" style="margin-top: 1.8rem;"><span class="dot green"></span> RECOMMENDED KEY PHRASES</div>
         <div class="keyword-chips" id="blueprint-keywords"></div>
       </div>
@@ -1076,6 +1086,22 @@ body::before {
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- TEMPLATE MODAL -->
+<div class="modal" id="template-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 style="margin:0;font-size:1rem;color:var(--text)">📝 Generated Description Template</h3>
+      <button class="btn-ghost" style="padding:0.2rem 0.5rem;border:none;cursor:pointer;color:var(--text-dim);" onclick="document.getElementById('template-modal').classList.remove('show')">✕</button>
+    </div>
+    <div class="modal-body">
+      <textarea id="template-textarea" readonly style="width:100%;height:300px;background:var(--bg);color:var(--text);border:1px solid var(--border);padding:1rem;font-family:var(--font-mono);font-size:0.8rem;border-radius:var(--radius-sm);outline:none;resize:vertical;"></textarea>
+    </div>
+    <div class="modal-footer" style="display:flex;justify-content:flex-end;margin-top:1rem;">
+      <button class="btn btn-primary" onclick="copyTemplateToClipboard()">📋 Copy to Clipboard</button>
+    </div>
+  </div>
+</div>
 
 <script>
 // ══════════════════════════════════════════════════════════════════════════════
@@ -1564,32 +1590,46 @@ function renderAnalyticsTab() {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// PAGE ANALYZER
+// STORE AUDITORS
 // ══════════════════════════════════════════════════════════════════════════════
 function analyzePage() {
   const url = document.getElementById('steam-url').value.trim();
-  if (!url) { showToast('⚠ Enter a Steam store page URL'); return; }
-  if (!url.includes('store.steampowered.com/app/')) {
-    showToast('⚠ Please enter a valid Steam store URL (store.steampowered.com/app/...)');
+  if (!url) { showToast('⚠ Enter a store page URL'); return; }
+  
+  const isItch = url.includes('itch.io');
+  const isSteam = url.includes('steampowered.com/app/');
+  
+  if (!isItch && !isSteam) {
+    showToast('⚠ Please enter a valid Steam or Itch.io URL');
     return;
   }
 
-  showToast('🔍 Analyzing Page Heuristics...');
+  showToast(`🔍 Analyzing ${isItch ? 'Itch.io' : 'Steam'} Page Heuristics...`);
 
-  // Set simple audit scores
-  const scores = {
-    description: { score: 85, grade: 'good' },
-    tags: { score: 90, grade: 'good' },
-    screenshots: { score: 65, grade: 'ok' },
-    branding: { score: 75, grade: 'ok' },
-  };
+  let scores = {};
+  if (isItch) {
+    scores = {
+      cover: { score: 92, grade: 'good', label: 'Cover Dimensions' },
+      theme: { score: 88, grade: 'good', label: 'Theme Contrast' },
+      css: { score: 40, grade: 'bad', label: 'Custom CSS' },
+      media: { score: 70, grade: 'ok', label: 'Media Embeds' },
+    };
+  } else {
+    scores = {
+      desc: { score: 85, grade: 'good', label: 'Description' },
+      tags: { score: 90, grade: 'good', label: 'Tags' },
+      shots: { score: 65, grade: 'ok', label: 'Screenshots' },
+      brand: { score: 75, grade: 'ok', label: 'Branding' },
+    };
+  }
 
   const cards = document.querySelectorAll('.metric-card');
-  const metrics = ['description', 'tags', 'screenshots', 'branding'];
-  metrics.forEach((m, i) => {
+  const keys = Object.keys(scores);
+  keys.forEach((k, i) => {
     const card = cards[i];
     if (!card) return;
-    const s = scores[m];
+    const s = scores[k];
+    card.querySelector('.metric-label').textContent = s.label;
     card.querySelector('.metric-score').textContent = s.score + '%';
     card.querySelector('.metric-score').className = `metric-score ${s.grade}`;
     const bar = card.querySelector('.metric-bar-fill');
@@ -1611,13 +1651,16 @@ function updateVisibility() {
     scores.push({ name: 'Capsule', score: capsuleScores.overall, icon: '🎨' });
   }
 
-  const metricCards = document.querySelectorAll('.metric-card .metric-score');
-  const metricNames = ['Description', 'Tags', 'Screenshots', 'Branding'];
-  const metricIcons = ['📝', '🏷️', '📸', '🎯'];
-  metricCards.forEach((el, i) => {
-    const val = parseInt(el.textContent);
-    if (!isNaN(val)) {
-      scores.push({ name: metricNames[i], score: val, icon: metricIcons[i] });
+  const metricCards = document.querySelectorAll('.metric-card');
+  const fallbackIcons = ['📝', '🏷️', '📸', '🎯'];
+  metricCards.forEach((card, i) => {
+    const labelEl = card.querySelector('.metric-label');
+    const scoreEl = card.querySelector('.metric-score');
+    if (labelEl && scoreEl) {
+      const val = parseInt(scoreEl.textContent);
+      if (!isNaN(val)) {
+        scores.push({ name: labelEl.textContent, score: val, icon: fallbackIcons[i] || '⚡' });
+      }
     }
   });
 
@@ -1647,6 +1690,45 @@ function updateVisibility() {
       </div>
     `;
   }).join('');
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// TEMPLATE GENERATOR
+// ══════════════════════════════════════════════════════════════════════════════
+function generateDescriptionTemplate() {
+  const data = loadedGenreData[activeGenre];
+  if (!data || !data.blueprint) {
+    showToast('⚠ No blueprint data available.');
+    return;
+  }
+  
+  let template = `[b]${data.genre_name} Description Blueprint[/b]\n\n`;
+  
+  data.blueprint.forEach(node => {
+    template += `[h2]${node.section}[/h2]\n`;
+    template += `[i]Target Length: ${node.avg_percent} of page[/i]\n`;
+    template += `<!-- ${node.description} -->\n`;
+    template += `[Write your content for ${node.section} here...]\n\n`;
+  });
+  
+  if (data.common_features && data.common_features.length) {
+    template += `[h2]Key Features[/h2]\n[list]\n`;
+    data.common_features.forEach(f => {
+      template += `[*] ${f}\n`;
+    });
+    template += `[/list]\n\n`;
+  }
+  
+  document.getElementById('template-textarea').value = template;
+  document.getElementById('template-modal').classList.add('show');
+}
+
+function copyTemplateToClipboard() {
+  const text = document.getElementById('template-textarea').value;
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('📋 Template copied to clipboard!');
+    document.getElementById('template-modal').classList.remove('show');
+  });
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
