@@ -882,7 +882,121 @@ async function analyzePage() {
     card.querySelector('.metric-score').className = `metric-score ${s.grade}`;
   });
 
+  renderAuditRecommendations(scores, isItch);
   updateVisibility();
+}
+
+function renderAuditRecommendations(scores, isItch) {
+  const panel = document.getElementById('audit-details-panel');
+  const container = document.getElementById('audit-recommendations-list');
+  
+  if (!scores) {
+    panel.style.display = 'none';
+    return;
+  }
+  
+  panel.style.display = 'block';
+  let html = '';
+  
+  if (isItch) {
+    html = `
+      <div style="padding:1rem; background:var(--bg3); border-radius:8px; border-left:4px solid var(--primary);">
+        <h4 style="margin:0 0 0.5rem 0; font-size:0.9rem; color:var(--text)">🌐 Itch.io Storefront Recommendations</h4>
+        <p style="font-size:0.8rem; color:var(--text-dim); margin-bottom:0.8rem;">Your Itch.io page is optimized for customized styling and quick downloads.</p>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; font-size:0.75rem;">
+          <div>
+            <strong style="color:var(--success); display:block; margin-bottom:0.3rem;">✅ DOS</strong>
+            <ul style="margin:0; padding-left:1.2rem; color:var(--text-dim); list-style-type:square;">
+              <li>Keep cover image at exact 315×250 aspect ratio to prevent grid squishing.</li>
+              <li>Enable Custom CSS configuration to align background panels to your game's palette.</li>
+              <li>Embed a gameplay trailer directly inside an iframe so players don't have to leave the page.</li>
+            </ul>
+          </div>
+          <div>
+            <strong style="color:var(--danger); display:block; margin-bottom:0.3rem;">❌ DONT'S</strong>
+            <ul style="margin:0; padding-left:1.2rem; color:var(--text-dim); list-style-type:square;">
+              <li>Don't use low-contrast text on bright custom backgrounds (WCAG compliant is best).</li>
+              <li>Don't hide your download widgets at the very bottom of a long description layout.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    `;
+  } else {
+    const descRec = scores.desc.score >= 80 
+      ? {
+          title: "Description Length (Excellent)",
+          why: `Your description length meets or exceeds the target benchmarks. This provides sufficient room to detail narrative hooks and combat features.`,
+          dos: ["Utilize [h2] subheadings and bold text elements for easy scanning.", "Include animated gameplay GIFs to break up large paragraphs.", "Keep paragraphs strictly under 3 sentences."],
+          donts: ["Don't exceed 3000 total characters to avoid reader cognitive fatigue.", "Don't write a wall of text without formatting."]
+        }
+      : {
+          title: "Description Length (Under-optimized)",
+          why: `Your store description is too short compared to successful competitors. Visual shoppers might not understand the gameplay loop depth.`,
+          dos: ["Build a structural blueprint: Narrative Hook, Gameplay Depth, and Feature bullets.", "Explain the core gameplay loop and progression tree.", "Add a detailed story or lore hook."],
+          donts: ["Don't copy-paste single paragraph summaries.", "Don't write solely about story; players care about mechanics."]
+        };
+        
+    const tagRec = scores.tags.score >= 80 
+      ? {
+          title: "Tag Saturation (Excellent)",
+          why: `You have 15 or more tags. Your game will properly index into Steam's recommendation algorithm.`,
+          dos: ["Ensure your top 5 tags target the exact subgenre (e.g. Roguelike Deckbuilder).", "Order tags by search relevance in Steamworks."],
+          donts: ["Don't include broad keywords like 'Indie' or 'Action' in your top 5 tags.", "Don't spam irrelevant tags."]
+        }
+      : {
+          title: "Tag Saturation (Under-optimized)",
+          why: `You have less than 12 tags. Steam needs at least 15 tags to construct recommendation metrics.`,
+          dos: ["Use the Steam Tag wizard to add subgenres, mechanical features, themes, and camera perspectives.", "Check competitor pages to steal relevant tags."],
+          donts: ["Don't publish with only broad tags (e.g. just 'Indie' or 'Adventure').", "Don't leave tags under 15."]
+        };
+
+    const mediaRec = scores.shots.score >= 80 
+      ? {
+          title: "Screenshots & Media (Excellent)",
+          why: `Your screenshot and media count is strong. Shoppers can see diverse biomes and action.`,
+          dos: ["Ensure the first 4 screenshots show distinct gameplay and clean UI.", "Show combat or direct action in 80% of your screenshots."],
+          donts: ["Don't upload concept art or title cards.", "Don't use low-resolution debug images."]
+        }
+      : {
+          title: "Screenshots & Media (Under-optimized)",
+          why: `Your screenshot count is below benchmark. Visual buyers require a rich catalog of game highlights.`,
+          dos: ["Upload at least 8 to 12 HD screenshots showing distinct biomes and gameplay action.", "Incorporate at least one raw gameplay trailer (no titles, just play)."],
+          donts: ["Don't upload duplicate zones/biomes.", "Don't use raw editor screenshots with developer debug UI visible."]
+        };
+
+    const brandRec = {
+      title: "Branding & Layout",
+      why: "Evaluates layout, capsule compatibility, and general consistency.",
+      dos: ["Extract dominant colors from your capsule and use them for header underlines/text highlights.", "Sync branding keywords between your trailer, capsules, and description text."],
+      donts: ["Don't use neon/saturated colors that contradict your main capsule art direction.", "Don't use pixelated fonts or mismatched logos."]
+    };
+
+    const recs = [descRec, tagRec, mediaRec, brandRec];
+    
+    html = recs.map(r => `
+      <div style="padding:1rem; background:var(--bg3); border-radius:8px; border-left:4px solid ${r.title.includes('Under-optimized') ? 'var(--danger)' : 'var(--primary)'}">
+        <h4 style="margin:0 0 0.3rem 0; font-size:0.85rem; color:var(--text)">${r.title}</h4>
+        <p style="font-size:0.75rem; color:var(--text-dim); margin-bottom:0.8rem;">${r.why}</p>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; font-size:0.7rem;">
+          <div>
+            <strong style="color:var(--success); display:block; margin-bottom:0.2rem;">✅ DOS</strong>
+            <ul style="margin:0; padding-left:1rem; color:var(--text-dim); list-style-type:square; line-height:1.3;">
+              ${r.dos.map(item => `<li>${item}</li>`).join('')}
+            </ul>
+          </div>
+          <div>
+            <strong style="color:var(--danger); display:block; margin-bottom:0.2rem;">❌ DONT'S</strong>
+            <ul style="margin:0; padding-left:1rem; color:var(--text-dim); list-style-type:square; line-height:1.3;">
+              ${r.donts.map(item => `<li>${item}</li>`).join('')}
+            </ul>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+  
+  container.innerHTML = html;
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
