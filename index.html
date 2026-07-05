@@ -898,8 +898,8 @@ body::before {
     </div>
 
     <div class="page-analyzer-input">
-      <input type="text" class="url-input" id="steam-url" placeholder="https://store.steampowered.com/app/... or https://yourname.itch.io/..." />
-      <button class="btn btn-primary" id="analyze-page-btn" onclick="analyzePage()">🔍 Analyze Page</button>
+      <input type="text" class="url-input" id="steam-url" placeholder="Steam URL, Itch.io URL, or Game Name..." />
+      <button class="btn btn-primary" id="analyze-page-btn" onclick="analyzePage()">🔍 Analyze</button>
     </div>
 
     <div id="page-results">
@@ -1594,17 +1594,19 @@ function renderAnalyticsTab() {
 // ══════════════════════════════════════════════════════════════════════════════
 function analyzePage() {
   const url = document.getElementById('steam-url').value.trim();
-  if (!url) { showToast('⚠ Enter a store page URL'); return; }
+  if (!url) { showToast('⚠ Enter a store URL or game name'); return; }
   
   const isItch = url.includes('itch.io');
-  const isSteam = url.includes('steampowered.com/app/');
+  const isSteamUrl = url.includes('steampowered.com/app/');
+  const isNameSearch = !url.includes('http') && !url.includes('.com') && !url.includes('.io');
   
-  if (!isItch && !isSteam) {
-    showToast('⚠ Please enter a valid Steam or Itch.io URL');
+  if (!isItch && !isSteamUrl && !isNameSearch) {
+    showToast('⚠ Please enter a valid URL or a game name');
     return;
   }
 
-  showToast(`🔍 Analyzing ${isItch ? 'Itch.io' : 'Steam'} Page Heuristics...`);
+  const targetName = isNameSearch ? `"${url}"` : (isItch ? 'Itch.io' : 'Steam');
+  showToast(`🔍 Analyzing ${targetName}...`);
 
   let scores = {};
   if (isItch) {
