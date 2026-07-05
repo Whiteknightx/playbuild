@@ -69,6 +69,46 @@
       </div>
     </div>
 
+    <!-- REFERENCE SANDBOX SETUP -->
+    <div class="panel" style="max-width:800px; margin: 0 auto 3rem auto; padding: 2rem;">
+      <div class="panel-title"><span class="dot purple"></span> STEP 1: DEFINE YOUR REFERENCE SANDBOX</div>
+      <p style="font-size:0.9rem; color:var(--text-dim); margin-bottom:1.5rem;">
+        Before auditing your game, select your genre and add competitor/reference games. This establishes a custom baseline (average description length, tags, and capsule colors) for direct comparison.
+      </p>
+      
+      <div class="sandbox-controls" style="display:flex; flex-direction:column; gap:1.2rem;">
+        <div style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
+          <div style="display:flex; flex-direction:column; gap:0.4rem; min-width:180px;">
+            <label style="font-size:0.75rem; font-weight:700; color:var(--text-dim);">GENRE CLASS</label>
+            <select class="shelf-select" id="sandbox-genre" onchange="syncGenreSelection(this.value)" style="width:100%;">
+              <option value="horror">Horror</option>
+              <option value="action">Action</option>
+              <option value="rpg">RPG</option>
+              <option value="strategy">Strategy</option>
+              <option value="puzzle">Puzzle</option>
+              <option value="simulation">Simulation</option>
+              <option value="adventure">Adventure</option>
+            </select>
+          </div>
+          
+          <div style="display:flex; flex-direction:column; gap:0.4rem; flex-grow:1; min-width:250px;">
+            <label style="font-size:0.75rem; font-weight:700; color:var(--text-dim);">ADD REFERENCE GAME (NAME OR STEAM URL)</label>
+            <div style="display:flex; gap:0.5rem;">
+              <input type="text" class="url-input" id="sandbox-input" placeholder="e.g. Hades, Dead Cells, or Steam URL" style="margin:0; flex-grow:1;" />
+              <button class="btn btn-primary" onclick="addReferenceGame()" style="white-space:nowrap;">➕ Add</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="sandbox-list-panel" style="display:none; border-top:1px solid var(--border); padding-top:1rem;">
+          <label style="font-size:0.75rem; font-weight:700; color:var(--text-dim); display:block; margin-bottom:0.8rem;">ACTIVE REFERENCE SANDBOX (COMPETING AGAINST)</label>
+          <div class="competitor-list" id="sandbox-games-list" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:1rem;">
+            <!-- Reference items added dynamically -->
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="features-grid">
       <div class="feature-card" onclick="switchTab('capsule')">
         <div class="feature-icon purple">🎨</div>
@@ -186,27 +226,56 @@
     </div>
 
     <div id="page-results">
-      <div class="metrics-grid">
-        <div class="metric-card">
-          <div class="metric-label">Description</div>
-          <div class="metric-score neutral">—</div>
-          <div class="metric-bar"><div class="metric-bar-fill" style="width:0%"></div></div>
+      <div class="metrics-grid" style="grid-template-columns:repeat(auto-fit, minmax(280px, 1fr))">
+        
+        <div class="metric-card" style="display:flex; flex-direction:column; gap:0.4rem;">
+          <div class="metric-label" style="font-size:0.85rem">Description Length</div>
+          <div style="display:flex; justify-content:space-between; align-items:baseline; margin:0.2rem 0;">
+            <div class="metric-score neutral" id="score-desc">—</div>
+            <div style="font-size:0.7rem; color:var(--text-dim);">Global: <span id="global-desc">—</span> | Sandbox: <span id="sandbox-desc">—</span></div>
+          </div>
+          <div style="font-size:0.6rem; color:var(--text-dim); margin-bottom:0.1rem;">GLOBAL BENCHMARK</div>
+          <div class="metric-bar"><div class="metric-bar-fill global-fill" id="fill-global-desc" style="width:0%"></div></div>
+          <div style="font-size:0.6rem; color:var(--accent); margin:0.3rem 0 0.1rem 0;">SANDBOX BENCHMARK</div>
+          <div class="metric-bar" style="border-color:var(--accent-muted)"><div class="metric-bar-fill sandbox-fill" id="fill-sandbox-desc" style="width:0%; background:var(--accent)"></div></div>
         </div>
-        <div class="metric-card">
-          <div class="metric-label">Tags</div>
-          <div class="metric-score neutral">—</div>
-          <div class="metric-bar"><div class="metric-bar-fill" style="width:0%"></div></div>
+
+        <div class="metric-card" style="display:flex; flex-direction:column; gap:0.4rem;">
+          <div class="metric-label" style="font-size:0.85rem">Tag Saturation</div>
+          <div style="display:flex; justify-content:space-between; align-items:baseline; margin:0.2rem 0;">
+            <div class="metric-score neutral" id="score-tags">—</div>
+            <div style="font-size:0.7rem; color:var(--text-dim);">Global: <span id="global-tags">—</span> | Sandbox: <span id="sandbox-tags">—</span></div>
+          </div>
+          <div style="font-size:0.6rem; color:var(--text-dim); margin-bottom:0.1rem;">GLOBAL BENCHMARK</div>
+          <div class="metric-bar"><div class="metric-bar-fill global-fill" id="fill-global-tags" style="width:0%"></div></div>
+          <div style="font-size:0.6rem; color:var(--accent); margin:0.3rem 0 0.1rem 0;">SANDBOX BENCHMARK</div>
+          <div class="metric-bar" style="border-color:var(--accent-muted)"><div class="metric-bar-fill sandbox-fill" id="fill-sandbox-tags" style="width:0%; background:var(--accent)"></div></div>
         </div>
-        <div class="metric-card">
-          <div class="metric-label">Screenshots</div>
-          <div class="metric-score neutral">—</div>
-          <div class="metric-bar"><div class="metric-bar-fill" style="width:0%"></div></div>
+
+        <div class="metric-card" style="display:flex; flex-direction:column; gap:0.4rem;">
+          <div class="metric-label" style="font-size:0.85rem">Screenshots & Media</div>
+          <div style="display:flex; justify-content:space-between; align-items:baseline; margin:0.2rem 0;">
+            <div class="metric-score neutral" id="score-shots">—</div>
+            <div style="font-size:0.7rem; color:var(--text-dim);">Global: <span id="global-shots">—</span> | Sandbox: <span id="sandbox-shots">—</span></div>
+          </div>
+          <div style="font-size:0.6rem; color:var(--text-dim); margin-bottom:0.1rem;">GLOBAL BENCHMARK</div>
+          <div class="metric-bar"><div class="metric-bar-fill global-fill" id="fill-global-shots" style="width:0%"></div></div>
+          <div style="font-size:0.6rem; color:var(--accent); margin:0.3rem 0 0.1rem 0;">SANDBOX BENCHMARK</div>
+          <div class="metric-bar" style="border-color:var(--accent-muted)"><div class="metric-bar-fill sandbox-fill" id="fill-sandbox-shots" style="width:0%; background:var(--accent)"></div></div>
         </div>
-        <div class="metric-card">
-          <div class="metric-label">Branding</div>
-          <div class="metric-score neutral">—</div>
-          <div class="metric-bar"><div class="metric-bar-fill" style="width:0%"></div></div>
+
+        <div class="metric-card" style="display:flex; flex-direction:column; gap:0.4rem;">
+          <div class="metric-label" style="font-size:0.85rem">Branding & Layout</div>
+          <div style="display:flex; justify-content:space-between; align-items:baseline; margin:0.2rem 0;">
+            <div class="metric-score neutral" id="score-brand">—</div>
+            <div style="font-size:0.7rem; color:var(--text-dim);">Global: <span id="global-brand">—</span> | Sandbox: <span id="sandbox-brand">—</span></div>
+          </div>
+          <div style="font-size:0.6rem; color:var(--text-dim); margin-bottom:0.1rem;">GLOBAL BENCHMARK</div>
+          <div class="metric-bar"><div class="metric-bar-fill global-fill" id="fill-global-brand" style="width:0%"></div></div>
+          <div style="font-size:0.6rem; color:var(--accent); margin:0.3rem 0 0.1rem 0;">SANDBOX BENCHMARK</div>
+          <div class="metric-bar" style="border-color:var(--accent-muted)"><div class="metric-bar-fill sandbox-fill" id="fill-sandbox-brand" style="width:0%; background:var(--accent)"></div></div>
         </div>
+
       </div>
     </div>
   </div>
@@ -352,7 +421,7 @@
 
   <!-- FOOTER -->
   <footer class="footer">
-    <span>PLAYBUILD v1.0 — Steam Developer Toolkit</span>
+    <span>PLAYBUILD v1.2 — Steam Developer Toolkit</span>
     <span>Part of the <a href="https://whiteknightx.github.io/playindex-dashboard/" target="_blank" rel="noopener">PlayIndex</a> Ecosystem</span>
   </footer>
 

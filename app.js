@@ -10,6 +10,103 @@ let checklistState = {};
 let activeGenre = "horror";
 let loadedGenreData = {};
 
+// ── REFERENCE SANDBOX STATE ──
+let sandboxGames = [];
+
+async function addReferenceGame() {
+  const input = document.getElementById('sandbox-input').value.trim();
+  if (!input) { showToast('⚠ Enter a game name or URL'); return; }
+
+  showToast(`🔍 Resolving reference game: "${input}"...`);
+  
+  let appId = '';
+  const isUrl = input.includes('steampowered.com/app/');
+  if (isUrl) {
+    const match = input.match(/\/app\/(\d+)/);
+    if (match) appId = match[1];
+  }
+
+  try {
+    if (!appId) {
+      // Find App ID by name search
+      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent('https://store.steampowered.com/search/suggest?term=' + input + '&f=games&cc=US&realm=1&l=english')}`;
+      const res = await fetch(proxyUrl);
+      const data = await res.json();
+      
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(data.contents, 'text/html');
+      const firstLink = doc.querySelector('a');
+      if (firstLink) {
+         const linkUrl = firstLink.getAttribute('href');
+         const match = linkUrl ? linkUrl.match(/\/app\/(\d+)/) : null;
+         if (match) appId = match[1];
+      }
+    }
+
+    if (!appId) {
+      showToast(`⚠ Game "${input}" not found on Steam.`);
+      return;
+    }
+
+    if (sandboxGames.some(g => g.app_id === appId)) {
+      showToast('⚠ This game is already in your sandbox.');
+      return;
+    }
+
+    // Fetch Details
+    const pageProxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent('https://store.steampowered.com/api/appdetails?appids=' + appId)}`;
+    const pageRes = await fetch(pageProxyUrl);
+    const pageData = await pageRes.json();
+    const parsed = JSON.parse(pageData.contents);
+    const appData = parsed[appId].data;
+
+    const game = {
+      app_id: appId,
+      name: appData.name,
+      capsule_url: appData.header_image || `https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/${appId}/header.jpg`,
+      description_length: (appData.detailed_description || '').length,
+      screenshots: appData.screenshots ? appData.screenshots.length : 0,
+      tags_count: (appData.genres ? appData.genres.length : 0) + (appData.categories ? appData.categories.length : 0) + 8
+    };
+
+    sandboxGames.push(game);
+    document.getElementById('sandbox-input').value = '';
+    renderSandboxList();
+    showToast(`✅ Added ${game.name} to sandbox.`);
+  } catch (e) {
+    showToast('⚠ Failed to fetch reference game details.');
+    console.error(e);
+  }
+}
+
+function removeReferenceGame(appId) {
+  sandboxGames = sandboxGames.filter(g => g.app_id !== appId);
+  renderSandboxList();
+  showToast('🗑 Reference game removed.');
+}
+
+function renderSandboxList() {
+  const panel = document.getElementById('sandbox-list-panel');
+  const container = document.getElementById('sandbox-games-list');
+  
+  if (sandboxGames.length === 0) {
+    panel.style.display = 'none';
+    return;
+  }
+  
+  panel.style.display = 'block';
+  container.innerHTML = sandboxGames.map(g => `
+    <div class="competitor-item" style="border: 1px solid var(--border); padding: 0.5rem; border-radius: 8px; position:relative;">
+      <button onclick="removeReferenceGame('${g.app_id}')" style="position:absolute; top:4px; right:4px; background:rgba(0,0,0,0.6); border:none; color:var(--text); cursor:pointer; padding:0.2rem 0.4rem; border-radius:4px; font-size:0.65rem;">✕</button>
+      <img class="competitor-img" src="${g.capsule_url}" alt="${g.name}" style="height:40px;"/>
+      <div class="competitor-info">
+        <div class="competitor-name" style="font-size:0.75rem;">${g.name}</div>
+        <div class="competitor-id" style="font-size:0.6rem;">App ID: ${g.app_id}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
 // Fallback datasets to ensure app runs if local JSON scrapes aren't complete
 const FALLBACK_GENRE_DATA = {
   horror: {
@@ -53,6 +150,111 @@ const FALLBACK_GENRE_DATA = {
       { tag: "Fast-Paced", percentage: 80 },
       { tag: "Singleplayer", percentage: 75 },
       { tag: "Shooter", percentage: 65 }
+    ]
+  },
+  rpg: {
+    genre_name: "RPG",
+    games: [
+      { name: "Elden Ring", app_id: 1245620, dominant_colors: ["#15110d", "#d97706", "#8b5cf6"], tags: ["RPG", "Open World", "Souls-like"] },
+      { name: "Dark Souls III", app_id: 374320, dominant_colors: ["#0c0b0a", "#8b5cf6", "#f59e0b"], tags: ["RPG", "Souls-like", "Difficult"] }
+    ],
+    blueprint: [
+      { section: "Narrative Hook", description: "Introduction to the rich fantasy world, prophecy, faction war, or central lore choice.", avg_percent: "25%" },
+      { section: "Character Choice", description: "Focus on player agency: classes, races, skill paths, customization, and background stats.", avg_percent: "20%" },
+      { section: "Quest & Exploration", description: "Detail main campaigns, side quests, companions, turn-based/real-time combat, and dialogue options.", avg_percent: "35%" },
+      { section: "Key Features", description: "Bullet-point list: moral choices, crafting system, companion relationships, and end-game dungeons.", avg_percent: "20%" }
+    ],
+    key_phrases: ["forge your destiny", "choices shape the story", "recruit companions", "epic fantasy realm", "strategic combat"],
+    common_features: ["Character Customization", "Skill Choices", "Crafting", "Companions", "Moral Decisions"],
+    top_tags: [
+      { tag: "RPG", percentage: 100 },
+      { tag: "Story Rich", percentage: 85 },
+      { tag: "Fantasy", percentage: 80 },
+      { tag: "Open World", percentage: 70 }
+    ]
+  },
+  strategy: {
+    genre_name: "Strategy",
+    games: [
+      { name: "Civilization VI", app_id: 289070, dominant_colors: ["#0c1220", "#3b82f6", "#f59e0b"], tags: ["Strategy", "Turn-Based", "Historical"] },
+      { name: "Age of Empires IV", app_id: 1466860, dominant_colors: ["#181a20", "#ef4444", "#d97706"], tags: ["Strategy", "RTS", "Multiplayer"] }
+    ],
+    blueprint: [
+      { section: "Command Hook", description: "Establish the macro scale of leadership, empire building, or tactical defense.", avg_percent: "20%" },
+      { section: "Resource Loop", description: "Explain resource gathering, building construction, infrastructure development, or technology research trees.", avg_percent: "30%" },
+      { section: "Tactical Confrontation", description: "Detail unit types, battle configurations, weather effects, layout defensive layouts, and combat strategies.", avg_percent: "30%" },
+      { section: "Key Features", description: "Bullet-point list: single-player campaigns, skirmish maps, procedural maps, unit variations, and multiplayer matches.", avg_percent: "20%" }
+    ],
+    key_phrases: ["build your empire", "command your forces", "research technologies", "outsmart your enemies", "gather vital resources"],
+    common_features: ["Resource Management", "Technology Tree", "Base Building", "Unit Customization", "Skirmish Mode"],
+    top_tags: [
+      { tag: "Strategy", percentage: 100 },
+      { tag: "RTS", percentage: 75 },
+      { tag: "Turn-Based", percentage: 70 },
+      { tag: "Tactical", percentage: 65 }
+    ]
+  },
+  simulation: {
+    genre_name: "Simulation",
+    games: [
+      { name: "Stardew Valley", app_id: 413150, dominant_colors: ["#0f1c11", "#10b981", "#f59e0b"], tags: ["Simulation", "Farming Sim", "RPG"] },
+      { name: "Cities: Skylines", app_id: 255710, dominant_colors: ["#0b1626", "#06b6d4", "#f59e0b"], tags: ["Simulation", "City Builder", "Sandbox"] }
+    ],
+    blueprint: [
+      { section: "Experience Hook", description: "Introduce the specific job, life context, building scale, or physics simulator scenario.", avg_percent: "25%" },
+      { section: "Day-to-Day Routine", description: "Explain daily operational actions: farming, maintenance, custom building, driving, or management tasks.", avg_percent: "35%" },
+      { section: "Progression & Customization", description: "Detail upgrades, new equipment purchases, cosmetic layouts, expanding land/facilities, and unlocking tiers.", avg_percent: "25%" },
+      { section: "Key Features", description: "Bullet-point list: realistic physics, co-op support, sandbox mode, steam workshop custom items, and relax mode.", avg_percent: "15%" }
+    ],
+    key_phrases: ["manage your budget", "customize every detail", "realistic physics", "expand your facilities", "relaxing gameplay loop"],
+    common_features: ["Sandbox Mode", "Customization", "Progression System", "Cooperative Mode", "Realistic Physics"],
+    top_tags: [
+      { tag: "Simulation", percentage: 100 },
+      { tag: "Sandbox", percentage: 80 },
+      { tag: "Building", percentage: 75 },
+      { tag: "Management", percentage: 70 }
+    ]
+  },
+  puzzle: {
+    genre_name: "Puzzle",
+    games: [
+      { name: "Portal 2", app_id: 620, dominant_colors: ["#05101a", "#06b6d4", "#f59e0b"], tags: ["Puzzle", "Co-op", "Sci-fi"] },
+      { name: "Baba Is You", app_id: 736260, dominant_colors: ["#0a0a0f", "#ef4444", "#f59e0b"], tags: ["Puzzle", "Indie", "Difficult"] }
+    ],
+    blueprint: [
+      { section: "Intellectual Hook", description: "Explain the unique visual perspective, reality-bending rules, or primary cognitive challenge.", avg_percent: "25%" },
+      { section: "Mechanic Progression", description: "Explain how complexity escalates: introducing new tiles, gravity manipulation, perspective shifts, or logic gates.", avg_percent: "35%" },
+      { section: "Atmosphere / Mood", description: "Describe the relaxing visual aesthetics, ambient music, lack of timers/deadlines, or background mystery narrative.", avg_percent: "20%" },
+      { section: "Key Features", description: "Bullet-point list: level editor, relaxing soundtracks, accessibility settings, number of unique levels, and hint systems.", avg_percent: "20%" }
+    ],
+    key_phrases: ["bend your mind", "no rush or timers", "relaxing atmosphere", "hundreds of puzzles", "manipulate perspective"],
+    common_features: ["Level Progression", "Logic Puzzles", "Atmospheric Audio", "No Timers", "Minimalist Design"],
+    top_tags: [
+      { tag: "Puzzle", percentage: 100 },
+      { tag: "Logic", percentage: 85 },
+      { tag: "Minimalist", percentage: 80 },
+      { tag: "Indie", percentage: 75 }
+    ]
+  },
+  adventure: {
+    genre_name: "Adventure",
+    games: [
+      { name: "Outer Wilds", app_id: 753640, dominant_colors: ["#0c0f16", "#d97706", "#8b5cf6"], tags: ["Adventure", "Exploration", "Space"] },
+      { name: "Subnautica", app_id: 264710, dominant_colors: ["#051525", "#3b82f6", "#10b981"], tags: ["Adventure", "Survival", "Open World"] }
+    ],
+    blueprint: [
+      { section: "Mystery Hook", description: "Introduce the exploration setting, missing person, forgotten ruins, or journey objective.", avg_percent: "20%" },
+      { section: "World Exploration", description: "Detail traversal mechanics, interacting with characters, examining clues, and environmental puzzles.", avg_percent: "35%" },
+      { section: "Story Integration", description: "Describe character dialogue choices, branching narrative paths, emotional growth, and player impact.", avg_percent: "30%" },
+      { section: "Key Features", description: "Bullet-point list: gorgeous hand-drawn art, fully voiced characters, atmospheric music, and interactive options.", avg_percent: "15%" }
+    ],
+    key_phrases: ["explore ancient ruins", "branching storylines", "unravel the mystery", "vibrant hand-drawn visuals", "interact with characters"],
+    common_features: ["Branching Dialog", "Exploration", "Scenic Views", "Interactive Clues", "Hand-drawn Visuals"],
+    top_tags: [
+      { tag: "Adventure", percentage: 100 },
+      { tag: "Exploration", percentage: 90 },
+      { tag: "Atmospheric", percentage: 80 },
+      { tag: "Story Rich", percentage: 75 }
     ]
   }
 };
@@ -105,6 +307,11 @@ async function syncGenreSelection(genre) {
   document.getElementById('shelf-genre').value = genre;
   document.getElementById('research-genre').value = genre;
   document.getElementById('analytics-genre').value = genre;
+  document.getElementById('sandbox-genre').value = genre;
+  
+  // Clear reference sandbox on genre shift to keep comparison clean
+  sandboxGames = [];
+  renderSandboxList();
   
   await loadGenreData(genre);
   renderShelf();
@@ -502,6 +709,15 @@ async function analyzePage() {
   const targetName = isNameSearch ? `"${url}"` : (isItch ? 'Itch.io' : 'Steam');
   showToast(`🔍 Fetching live data for ${targetName}...`);
 
+  // Target metrics definitions
+  const globalDescTarget = 2000;
+  const globalTagsTarget = 15;
+  const globalShotsTarget = 8;
+
+  let sandboxDescAvg = sandboxGames.length ? Math.round(sandboxGames.reduce((s, g) => s + g.description_length, 0) / sandboxGames.length) : null;
+  let sandboxTagsAvg = sandboxGames.length ? Math.round(sandboxGames.reduce((s, g) => s + g.tags_count, 0) / sandboxGames.length) : null;
+  let sandboxShotsAvg = sandboxGames.length ? Math.round(sandboxGames.reduce((s, g) => s + g.screenshots, 0) / sandboxGames.length) : null;
+
   let scores = {};
   if (isItch) {
     scores = {
@@ -510,6 +726,27 @@ async function analyzePage() {
       css: { score: 40, grade: 'bad', label: 'Custom CSS' },
       media: { score: 70, grade: 'ok', label: 'Media Embeds' },
     };
+    
+    document.getElementById('global-desc').textContent = '315x250';
+    document.getElementById('sandbox-desc').textContent = '—';
+    document.getElementById('global-tags').textContent = 'WCAG AAA';
+    document.getElementById('sandbox-tags').textContent = '—';
+    document.getElementById('global-shots').textContent = 'Enabled';
+    document.getElementById('sandbox-shots').textContent = '—';
+    document.getElementById('global-brand').textContent = 'Iframe Video';
+    document.getElementById('sandbox-brand').textContent = '—';
+    
+    setTimeout(() => {
+      document.getElementById('fill-global-desc').style.width = '92%';
+      document.getElementById('fill-sandbox-desc').style.width = '0%';
+      document.getElementById('fill-global-tags').style.width = '88%';
+      document.getElementById('fill-sandbox-tags').style.width = '0%';
+      document.getElementById('fill-global-shots').style.width = '40%';
+      document.getElementById('fill-sandbox-shots').style.width = '0%';
+      document.getElementById('fill-global-brand').style.width = '70%';
+      document.getElementById('fill-sandbox-brand').style.width = '0%';
+    }, 100);
+
   } else {
     // REAL SEARCH API LOGIC
     let appId = '';
@@ -529,7 +766,6 @@ async function analyzePage() {
         const doc = parser.parseFromString(data.contents, 'text/html');
         const firstLink = doc.querySelector('a');
         if (firstLink) {
-           // Ensure it's not returning the proxy's URL but the parsed one
            const linkUrl = firstLink.getAttribute('href');
            const match = linkUrl ? linkUrl.match(/\/app\/(\d+)/) : null;
            if (match) appId = match[1];
@@ -551,16 +787,54 @@ async function analyzePage() {
         const screenshotsCount = appData.screenshots ? appData.screenshots.length : 0;
         const genresCount = appData.genres ? appData.genres.length : 0;
         const categoriesCount = appData.categories ? appData.categories.length : 0;
-        // Approximation of total tags based on genres + categories (since tag data is hidden from appdetails API)
         const tagCount = genresCount + categoriesCount + 8; 
+
+        // Dual benchmarking calculations
+        const globalDescScore = Math.min(100, Math.round((descLength / globalDescTarget) * 100));
+        const globalTagsScore = Math.min(100, Math.round((tagCount / globalTagsTarget) * 100));
+        const globalShotsScore = Math.min(100, Math.round((screenshotsCount / globalShotsTarget) * 100));
+        const globalBrandScore = 80;
+
+        const sandboxDescScore = sandboxDescAvg ? Math.min(100, Math.round((descLength / sandboxDescAvg) * 100)) : globalDescScore;
+        const sandboxTagsScore = sandboxTagsAvg ? Math.min(100, Math.round((tagCount / sandboxTagsAvg) * 100)) : globalTagsScore;
+        const sandboxShotsScore = sandboxShotsAvg ? Math.min(100, Math.round((screenshotsCount / sandboxShotsAvg) * 100)) : globalShotsScore;
+        const sandboxBrandScore = 80;
+
+        // Current overall user scores (prefer sandbox benchmarking if available)
+        const descScore = sandboxDescAvg ? sandboxDescScore : globalDescScore;
+        const tagsScore = sandboxTagsAvg ? sandboxTagsScore : globalTagsScore;
+        const shotsScore = sandboxShotsAvg ? sandboxShotsScore : globalShotsScore;
+        const brandScore = 80;
         
-        // Dynamic Heuristics
         scores = {
-          desc: { score: descLength > 1500 ? 95 : (descLength > 500 ? 70 : 40), grade: descLength > 1500 ? 'good' : (descLength > 500 ? 'ok' : 'bad'), label: 'Description' },
-          tags: { score: tagCount >= 15 ? 95 : (tagCount >= 10 ? 75 : 45), grade: tagCount >= 15 ? 'good' : (tagCount >= 10 ? 'ok' : 'bad'), label: `Tags (${tagCount})` },
-          shots: { score: screenshotsCount >= 5 ? 85 : 50, grade: screenshotsCount >= 5 ? 'good' : 'bad', label: 'Screenshots' },
-          brand: { score: 80, grade: 'good', label: 'Branding' }
+          desc: { score: descScore, grade: descScore >= 80 ? 'good' : (descScore >= 55 ? 'ok' : 'bad'), label: 'Description Length' },
+          tags: { score: tagsScore, grade: tagsScore >= 80 ? 'good' : (tagsScore >= 55 ? 'ok' : 'bad'), label: 'Tag Saturation' },
+          shots: { score: shotsScore, grade: shotsScore >= 80 ? 'good' : (shotsScore >= 55 ? 'ok' : 'bad'), label: 'Screenshots & Media' },
+          brand: { score: brandScore, grade: 'good', label: 'Branding & Layout' }
         };
+
+        // Render values in HTML
+        document.getElementById('global-desc').textContent = `${globalDescTarget} char`;
+        document.getElementById('sandbox-desc').textContent = sandboxDescAvg ? `${sandboxDescAvg} char` : '—';
+        document.getElementById('global-tags').textContent = `${globalTagsTarget} tags`;
+        document.getElementById('sandbox-tags').textContent = sandboxTagsAvg ? `${sandboxTagsAvg} tags` : '—';
+        document.getElementById('global-shots').textContent = `${globalShotsTarget} items`;
+        document.getElementById('sandbox-shots').textContent = sandboxShotsAvg ? `${sandboxShotsAvg} items` : '—';
+        document.getElementById('global-brand').textContent = 'Pass';
+        document.getElementById('sandbox-brand').textContent = sandboxGames.length ? 'Pass' : '—';
+
+        // Render filled bars
+        setTimeout(() => {
+          document.getElementById('fill-global-desc').style.width = `${globalDescScore}%`;
+          document.getElementById('fill-sandbox-desc').style.width = `${sandboxDescScore}%`;
+          document.getElementById('fill-global-tags').style.width = `${globalTagsScore}%`;
+          document.getElementById('fill-sandbox-tags').style.width = `${sandboxTagsScore}%`;
+          document.getElementById('fill-global-shots').style.width = `${globalShotsScore}%`;
+          document.getElementById('fill-sandbox-shots').style.width = `${sandboxShotsScore}%`;
+          document.getElementById('fill-global-brand').style.width = `${globalBrandScore}%`;
+          document.getElementById('fill-sandbox-brand').style.width = `${sandboxBrandScore}%`;
+        }, 100);
+
         showToast(`✅ Live analysis complete for ${targetName}!`);
       } else {
         throw new Error("Game not found on Steam");
@@ -569,11 +843,31 @@ async function analyzePage() {
       console.warn("Live fetch failed, falling back to simulated data", e);
       showToast(`⚠ Live fetch failed, using simulated metrics...`);
       scores = {
-        desc: { score: 85, grade: 'good', label: 'Description' },
-        tags: { score: 90, grade: 'good', label: 'Tags' },
-        shots: { score: 65, grade: 'ok', label: 'Screenshots' },
-        brand: { score: 75, grade: 'ok', label: 'Branding' },
+        desc: { score: 85, grade: 'good', label: 'Description Length' },
+        tags: { score: 90, grade: 'good', label: 'Tag Saturation' },
+        shots: { score: 65, grade: 'ok', label: 'Screenshots & Media' },
+        brand: { score: 75, grade: 'ok', label: 'Branding & Layout' },
       };
+      
+      document.getElementById('global-desc').textContent = '2000 char';
+      document.getElementById('sandbox-desc').textContent = '—';
+      document.getElementById('global-tags').textContent = '15 tags';
+      document.getElementById('sandbox-tags').textContent = '—';
+      document.getElementById('global-shots').textContent = '8 items';
+      document.getElementById('sandbox-shots').textContent = '—';
+      document.getElementById('global-brand').textContent = 'Pass';
+      document.getElementById('sandbox-brand').textContent = '—';
+
+      setTimeout(() => {
+        document.getElementById('fill-global-desc').style.width = '85%';
+        document.getElementById('fill-sandbox-desc').style.width = '0%';
+        document.getElementById('fill-global-tags').style.width = '90%';
+        document.getElementById('fill-sandbox-tags').style.width = '0%';
+        document.getElementById('fill-global-shots').style.width = '65%';
+        document.getElementById('fill-sandbox-shots').style.width = '0%';
+        document.getElementById('fill-global-brand').style.width = '75%';
+        document.getElementById('fill-sandbox-brand').style.width = '0%';
+      }, 100);
     }
   }
 
@@ -586,9 +880,6 @@ async function analyzePage() {
     card.querySelector('.metric-label').textContent = s.label;
     card.querySelector('.metric-score').textContent = s.score + '%';
     card.querySelector('.metric-score').className = `metric-score ${s.grade}`;
-    const bar = card.querySelector('.metric-bar-fill');
-    bar.className = `metric-bar-fill ${s.grade}`;
-    setTimeout(() => { bar.style.width = s.score + '%'; }, 100 + i * 150);
   });
 
   updateVisibility();
