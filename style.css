@@ -714,3 +714,69 @@ body::before {
 .modal-content { background: var(--bg2); border: 1px solid var(--primary-muted); border-radius: var(--radius-lg); width: 100%; max-width: 600px; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; box-shadow: 0 10px 40px rgba(0,0,0,0.5); transform: translateY(20px); transition: transform 0.3s; }
 .modal.show .modal-content { transform: translateY(0); }
 .modal-header { display: flex; align-items: center; justify-content: space-between; }
+
+/* ── STEAM-STYLE AUTOCOMPLETE DROPDOWN ── */
+.autocomplete-wrapper { position: relative; flex-grow: 1; }
+.autocomplete-dropdown {
+  position: absolute; top: 100%; left: 0; right: 0; z-index: 1000;
+  background: #1b2838; border: 1px solid #4b6a88; border-top: none;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.55);
+  max-height: 320px; overflow-y: auto;
+  opacity: 0; transform: translateY(-4px);
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+.autocomplete-dropdown.visible {
+  opacity: 1; transform: translateY(0); pointer-events: auto;
+}
+.autocomplete-dropdown .ac-header {
+  padding: 0.5rem 0.75rem; font-size: 0.72rem; font-weight: 600;
+  color: #8f98a0; letter-spacing: 0.04em; text-transform: none;
+  border-bottom: 1px solid rgba(75,106,136,0.35);
+  background: rgba(27,40,56,0.95);
+}
+.autocomplete-dropdown .ac-item {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.55rem 0.75rem; cursor: pointer;
+  transition: background 0.12s ease;
+  border-bottom: 1px solid rgba(75,106,136,0.15);
+}
+.autocomplete-dropdown .ac-item:last-child { border-bottom: none; }
+.autocomplete-dropdown .ac-item:hover,
+.autocomplete-dropdown .ac-item.ac-active {
+  background: rgba(102,143,182,0.18);
+}
+.autocomplete-dropdown .ac-img {
+  width: 120px; height: 45px; object-fit: cover;
+  border-radius: 3px; flex-shrink: 0;
+  background: #0e1a26;
+}
+.autocomplete-dropdown .ac-info { flex: 1; min-width: 0; }
+.autocomplete-dropdown .ac-name {
+  font-size: 0.82rem; font-weight: 500; color: #c6d4df;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.autocomplete-dropdown .ac-price {
+  font-size: 0.7rem; color: #8f98a0; margin-top: 2px;
+}
+.autocomplete-dropdown .ac-price .ac-discount {
+  background: #4c6b22; color: #a4d007; padding: 1px 4px;
+  border-radius: 2px; font-weight: 700; font-size: 0.65rem; margin-right: 4px;
+}
+.autocomplete-dropdown .ac-price .ac-original {
+  text-decoration: line-through; color: #6b7f8d; margin-right: 4px;
+}
+.autocomplete-dropdown .ac-footer {
+  padding: 0.5rem 0.75rem; text-align: center;
+  font-size: 0.72rem; color: #8f98a0; cursor: pointer;
+  border-top: 1px solid rgba(75,106,136,0.35);
+  transition: background 0.12s;
+}
+.autocomplete-dropdown .ac-footer:hover {
+  background: rgba(102,143,182,0.18); color: #c6d4df;
+}
+.autocomplete-dropdown .ac-loading {
+  padding: 1rem; text-align: center; color: #8f98a0;
+  font-size: 0.78rem; font-style: italic;
+}

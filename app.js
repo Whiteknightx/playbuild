@@ -107,6 +107,185 @@ function renderSandboxList() {
   `).join('');
 }
 
+// ── STEAM-STYLE AUTOCOMPLETE SEARCH ──
+(function() {
+  const AC_MAX_RESULTS = 4;
+  const AC_DEBOUNCE_MS = 350;
+  let acTimers = {};
+  let acActiveIndex = {};
+
+  function initAutocomplete(inputId, dropdownId) {
+    const input = document.getElementById(inputId);
+    const dropdown = document.getElementById(dropdownId);
+    if (!input || !dropdown) return;
+
+    acActiveIndex[dropdownId] = -1;
+
+    input.addEventListener('input', () => {
+      const term = input.value.trim();
+      clearTimeout(acTimers[inputId]);
+
+      // Don't search if it looks like a URL
+      if (!term || term.length < 2 || term.includes('http') || term.includes('.com') || term.includes('.io')) {
+        hideDropdown(dropdown, dropdownId);
+        return;
+      }
+
+      acTimers[inputId] = setTimeout(() => fetchSuggestions(term, dropdown, input, dropdownId), AC_DEBOUNCE_MS);
+    });
+
+    input.addEventListener('keydown', (e) => {
+      if (!dropdown.classList.contains('visible')) return;
+      const items = dropdown.querySelectorAll('.ac-item');
+      if (!items.length) return;
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        acActiveIndex[dropdownId] = Math.min(acActiveIndex[dropdownId] + 1, items.length - 1);
+        updateActiveItem(items, acActiveIndex[dropdownId]);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        acActiveIndex[dropdownId] = Math.max(acActiveIndex[dropdownId] - 1, 0);
+        updateActiveItem(items, acActiveIndex[dropdownId]);
+      } else if (e.key === 'Enter' && acActiveIndex[dropdownId] >= 0) {
+        e.preventDefault();
+        items[acActiveIndex[dropdownId]].click();
+      } else if (e.key === 'Escape') {
+        hideDropdown(dropdown, dropdownId);
+      }
+    });
+
+    input.addEventListener('focus', () => {
+      const term = input.value.trim();
+      if (term.length >= 2 && dropdown.children.length > 0 && !term.includes('http')) {
+        dropdown.classList.add('visible');
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+        hideDropdown(dropdown, dropdownId);
+      }
+    });
+  }
+
+  function hideDropdown(dropdown, dropdownId) {
+    dropdown.classList.remove('visible');
+    acActiveIndex[dropdownId] = -1;
+  }
+
+  function updateActiveItem(items, activeIdx) {
+    items.forEach((item, i) => {
+      item.classList.toggle('ac-active', i === activeIdx);
+    });
+  }
+
+  async function fetchSuggestions(term, dropdown, input, dropdownId) {
+    dropdown.innerHTML = '<div class="ac-loading">Searching Steam…</div>';
+    dropdown.classList.add('visible');
+
+    try {
+      const steamUrl = `https://store.steampowered.com/search/suggest?term=${encodeURIComponent(term)}&f=games&cc=US&realm=1&l=english`;
+      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(steamUrl)}`;
+      const res = await fetch(proxyUrl);
+      const data = await res.json();
+
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(data.contents || '', 'text/html');
+      const links = doc.querySelectorAll('a');
+
+      if (!links.length) {
+        dropdown.innerHTML = '<div class="ac-loading">No games found</div>';
+        setTimeout(() => hideDropdown(dropdown, dropdownId), 1500);
+        return;
+      }
+
+      const results = [];
+      for (let i = 0; i < Math.min(links.length, AC_MAX_RESULTS); i++) {
+        const link = links[i];
+        const href = link.getAttribute('href') || '';
+        const appMatch = href.match(/\/app\/(\d+)/);
+        if (!appMatch) continue;
+
+        const appId = appMatch[1];
+        const nameEl = link.querySelector('.match_name');
+        const imgEl = link.querySelector('img');
+        const priceEl = link.querySelector('.match_subtitle');
+
+        const name = nameEl ? nameEl.textContent.trim() : 'Unknown';
+        const img = imgEl ? (imgEl.getAttribute('src') || '') : `https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/${appId}/capsule_sm_120.jpg`;
+        const priceText = priceEl ? priceEl.textContent.trim() : '';
+
+        results.push({ appId, name, img, priceText, url: href });
+      }
+
+      if (!results.length) {
+        dropdown.innerHTML = '<div class="ac-loading">No games found</div>';
+        setTimeout(() => hideDropdown(dropdown, dropdownId), 1500);
+        return;
+      }
+
+      let html = '<div class="ac-header">Search results</div>';
+      results.forEach((r, idx) => {
+        const priceHtml = formatPrice(r.priceText);
+        html += `
+          <div class="ac-item" data-appid="${r.appId}" data-name="${r.name.replace(/"/g, '&quot;')}" data-url="${r.url}">
+            <img class="ac-img" src="${r.img}" alt="" loading="lazy" onerror="this.src='https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/${r.appId}/header.jpg'" />
+            <div class="ac-info">
+              <div class="ac-name">${r.name}</div>
+              <div class="ac-price">${priceHtml}</div>
+            </div>
+          </div>`;
+      });
+
+      dropdown.innerHTML = html;
+      acActiveIndex[dropdownId] = -1;
+
+      // Bind click handlers
+      dropdown.querySelectorAll('.ac-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const name = item.dataset.name;
+          const appId = item.dataset.appid;
+          const steamUrl = `https://store.steampowered.com/app/${appId}/`;
+          input.value = steamUrl;
+          hideDropdown(dropdown, dropdownId);
+          input.focus();
+        });
+      });
+
+    } catch (err) {
+      console.error('Autocomplete error:', err);
+      dropdown.innerHTML = '<div class="ac-loading">Search failed</div>';
+      setTimeout(() => hideDropdown(dropdown, dropdownId), 1500);
+    }
+  }
+
+  function formatPrice(raw) {
+    if (!raw) return 'Free';
+    const text = raw.trim();
+    if (text.toLowerCase() === 'free' || text.toLowerCase() === 'free to play' || text === '') return 'Free';
+    // Check for discount pattern like "-70% $29.99 $8.99"
+    const discountMatch = text.match(/(-?\d+%)\s+[\$€£]?([\d,.]+)\s+[\$€£]?([\d,.]+)/);
+    if (discountMatch) {
+      return `<span class="ac-discount">${discountMatch[1]}</span><span class="ac-original">$${discountMatch[2]}</span>$${discountMatch[3]}`;
+    }
+    // Simple price
+    if (text.match(/[\$€£]?[\d,.]+/)) return text;
+    return text || 'Free';
+  }
+
+  // Initialize on DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      initAutocomplete('sandbox-input', 'sandbox-ac-dropdown');
+      initAutocomplete('steam-url', 'steam-ac-dropdown');
+    });
+  } else {
+    initAutocomplete('sandbox-input', 'sandbox-ac-dropdown');
+    initAutocomplete('steam-url', 'steam-ac-dropdown');
+  }
+})();
+
 // Fallback datasets to ensure app runs if local JSON scrapes aren't complete
 const FALLBACK_GENRE_DATA = {
   horror: {
