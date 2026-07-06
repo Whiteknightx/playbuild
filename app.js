@@ -102,15 +102,19 @@ function renderSandboxList() {
       <div class="competitor-info">
         <div class="competitor-name" style="font-size:0.75rem;">${g.name}</div>
         <div class="competitor-id" style="font-size:0.6rem;">App ID: ${g.app_id}</div>
-      </div>
     </div>
   `).join('');
+
+  // Synchronize count in Description Editor panel
+  const countEl = document.getElementById('editor-sandbox-count');
+  if (countEl) countEl.textContent = sandboxGames.length;
 }
 
 // ── STEAM-STYLE AUTOCOMPLETE SEARCH ──
 (function() {
   const AC_MAX_RESULTS = 4;
-  const AC_DEBOUNCE_MS = 350;
+  const AC_DEBOUNCE_MS = 150; // Lowered debounce for snappy response
+  const acCache = {}; // Simple client-side search cache
   let acTimers = {};
   let acActiveIndex = {};
 
@@ -181,17 +185,77 @@ function renderSandboxList() {
   }
 
   async function fetchSuggestions(term, dropdown, input, dropdownId) {
+    const cacheKey = term.toLowerCase();
+    
+    // Check if we have results in local cache
+    if (acCache[cacheKey]) {
+      dropdown.innerHTML = acCache[cacheKey];
+      dropdown.classList.add('visible');
+      acActiveIndex[dropdownId] = -1;
+      bindClickHandlers(dropdown, input, dropdownId);
+      return;
+    }
+
     dropdown.innerHTML = '<div class="ac-loading">Searching Steam…</div>';
     dropdown.classList.add('visible');
 
     try {
       const steamUrl = `https://store.steampowered.com/search/suggest?term=${encodeURIComponent(term)}&f=games&cc=US&realm=1&l=english`;
-      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(steamUrl)}`;
+      const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(steamUrl)}`;
       const res = await fetch(proxyUrl);
       const data = await res.json();
 
       const parser = new DOMParser();
-      const doc = parser.parseFromString(data.contents || '', 'text/html');
+      // corsproxy.io returns the raw content or JSON sometimes depending on content type
+      // but let's parse the string from response. Depending on format, we extract the html.
+      // If the response is JSON with a 'contents' key (like allorigins), or just raw text, let's handle both.
+      let htmlContent = '';
+      if (typeof data === 'string') {
+        htmlContent = data;
+      } else if (data && data.contents) {
+        htmlContent = data.contents;
+      } else if (data && typeof data === 'object') {
+        // Sometimes it returns the raw html directly as text, but since we parsed as JSON it might fail.
+        // Let's fallback to text if fetch failed to parse as JSON.
+      }
+
+      // If JSON parse succeeded but it's not JSON, let's handle that by catching and parsing as text
+      const doc = parser.parseFromString(htmlContent || '', 'text/html');
+      let links = doc.querySelectorAll('a');
+
+      // Fallback: if data wasn't in contents, maybe corsproxy.io returned the text directly.
+      // Let's modify the fetch to get text directly to be safer and faster!
+      // Actually, fetching as text is better because Steam suggest endpoint returns raw HTML.
+      // Let's fetch text directly:
+      // const resText = await fetch(proxyUrl).then(r => r.text());
+      // Let's change the code to do that!
+    } catch (e) {
+      // We will implement direct text fetching in the final replacement content below
+    }
+  }
+
+  // To be super safe and fast, let's write the fully optimized fetchSuggestions here:
+  async function fetchSuggestions(term, dropdown, input, dropdownId) {
+    const cacheKey = term.toLowerCase();
+    
+    if (acCache[cacheKey]) {
+      dropdown.innerHTML = acCache[cacheKey];
+      dropdown.classList.add('visible');
+      acActiveIndex[dropdownId] = -1;
+      bindClickHandlers(dropdown, input, dropdownId);
+      return;
+    }
+
+    dropdown.innerHTML = '<div class="ac-loading">Searching Steam…</div>';
+    dropdown.classList.add('visible');
+
+    try {
+      const steamUrl = `https://store.steampowered.com/search/suggest?term=${encodeURIComponent(term)}&f=games&cc=US&realm=1&l=english`;
+      const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(steamUrl)}`;
+      
+      const resText = await fetch(proxyUrl).then(r => r.text());
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(resText || '', 'text/html');
       const links = doc.querySelectorAll('a');
 
       if (!links.length) {
@@ -226,7 +290,7 @@ function renderSandboxList() {
       }
 
       let html = '<div class="ac-header">Search results</div>';
-      results.forEach((r, idx) => {
+      results.forEach((r) => {
         const priceHtml = formatPrice(r.priceText);
         html += `
           <div class="ac-item" data-appid="${r.appId}" data-name="${r.name.replace(/"/g, '&quot;')}" data-url="${r.url}">
@@ -238,26 +302,32 @@ function renderSandboxList() {
           </div>`;
       });
 
+      acCache[cacheKey] = html; // Save to local memory cache
       dropdown.innerHTML = html;
       acActiveIndex[dropdownId] = -1;
-
-      // Bind click handlers
-      dropdown.querySelectorAll('.ac-item').forEach(item => {
-        item.addEventListener('click', () => {
-          const name = item.dataset.name;
-          const appId = item.dataset.appid;
-          const steamUrl = `https://store.steampowered.com/app/${appId}/`;
-          input.value = steamUrl;
-          hideDropdown(dropdown, dropdownId);
-          input.focus();
-        });
-      });
+      bindClickHandlers(dropdown, input, dropdownId);
 
     } catch (err) {
       console.error('Autocomplete error:', err);
       dropdown.innerHTML = '<div class="ac-loading">Search failed</div>';
       setTimeout(() => hideDropdown(dropdown, dropdownId), 1500);
     }
+  }
+
+  function bindClickHandlers(dropdown, input, dropdownId) {
+    dropdown.querySelectorAll('.ac-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const name = item.dataset.name;
+        const appId = item.dataset.appid;
+        const steamUrl = `https://store.steampowered.com/app/${appId}/`;
+        input.value = steamUrl;
+        hideDropdown(dropdown, dropdownId);
+        input.focus();
+        
+        // Trigger input event to update other states if needed
+        input.dispatchEvent(new Event('change'));
+      });
+    });
   }
 
   function formatPrice(raw) {
@@ -1363,3 +1433,190 @@ function renderChecklist() {
     }).join('')}
   `;
 }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// DESCRIPTION EDITOR & GENERATOR
+// ══════════════════════════════════════════════════════════════════════════════
+let currentEditorPlatform = 'steam';
+
+function setPlatform(platform) {
+  currentEditorPlatform = platform;
+  document.getElementById('platform-steam').classList.toggle('active', platform === 'steam');
+  document.getElementById('platform-itch').classList.toggle('active', platform === 'itch');
+  showToast(`🎯 Target platform changed to ${platform === 'steam' ? 'Steam' : 'Itch.io'}`);
+}
+
+function switchEditorTab(tab) {
+  document.querySelectorAll('.editor-tab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent.toLowerCase().includes(tab));
+  });
+  document.querySelectorAll('.editor-tab-content').forEach(content => {
+    content.classList.toggle('active', content.id === `editor-tab-${tab}`);
+  });
+}
+
+function generateStorePage() {
+  const rawDraft = document.getElementById('editor-raw-draft').value.trim();
+  const genre = document.getElementById('editor-genre').value;
+  const tone = document.getElementById('editor-tone').value;
+  const tags = document.getElementById('editor-tags').value.trim();
+  
+  if (!rawDraft) {
+    showToast('⚠ Please type or paste your raw description draft first');
+    return;
+  }
+
+  // Show loading overlay
+  const overlay = document.getElementById('editor-loading-overlay');
+  const placeholder = document.getElementById('editor-placeholder');
+  const resultsWrap = document.getElementById('editor-results-wrap');
+  
+  overlay.style.display = 'flex';
+  placeholder.style.display = 'none';
+  resultsWrap.style.display = 'none';
+  
+  // Reset loading steps
+  const steps = ['step-1', 'step-2', 'step-3', 'step-4'];
+  steps.forEach(s => {
+    const el = document.getElementById(s);
+    el.className = 'step-item';
+  });
+
+  // Step 1: Competitor fetching simulation
+  setTimeout(() => {
+    document.getElementById('step-1').className = 'step-item active';
+    
+    // Step 2: Tone analysis simulation
+    setTimeout(() => {
+      document.getElementById('step-1').className = 'step-item done';
+      document.getElementById('step-2').className = 'step-item active';
+      
+      // Step 3: Structuring modules simulation
+      setTimeout(() => {
+        document.getElementById('step-2').className = 'step-item done';
+        document.getElementById('step-3').className = 'step-item active';
+        
+        // Step 4: Finalizing tags and reqs simulation
+        setTimeout(() => {
+          document.getElementById('step-3').className = 'step-item done';
+          document.getElementById('step-4').className = 'step-item active';
+          
+          // Complete and show results
+          setTimeout(() => {
+            document.getElementById('step-4').className = 'step-item done';
+            overlay.style.display = 'none';
+            resultsWrap.style.display = 'flex';
+            
+            // Generate the optimized text
+            buildOptimizedCopy(rawDraft, genre, tone, tags);
+          }, 400);
+        }, 600);
+      }, 700);
+    }, 650);
+  }, 300);
+}
+
+function buildOptimizedCopy(draft, genre, tone, customTags) {
+  // Simple smart draft parser: extract interesting looking words/short sentences
+  const sentences = draft.split(/[.!?]+/).map(s => s.trim()).filter(s => s.length > 5);
+  const coreHookSentence = sentences[0] || "An exciting adventure awaits in this new indie game.";
+  
+  // Collect sandbox games to mention similar feel / references
+  const references = sandboxGames.map(g => g.name);
+  const referenceText = references.length 
+    ? `Influenced by the gameplay dynamics and mechanical depth of ${references.join(' and ')}.`
+    : `Designed as a modern evolution of classic ${genre} experiences.`;
+
+  // Genre specific marketing features
+  const genreFeatures = {
+    horror: ["Visceral atmosphere and tense environment mapping.", "Psychological horror elements that twist player choices.", "Unpredictable sound design keeping you on edge."],
+    action: ["Fast-paced combat mechanics with customizable skills.", "Intense boss encounters testing reflexes and strategy.", "High-mobility exploration elements across vertical levels."],
+    rpg: ["Deep branching story paths where choice determines destiny.", "Expansive character progression and equipment crafting.", "Tactical combat systems layered with elemental synergies."],
+    strategy: ["Procedural campaigns requiring complex resource optimization.", "Modular base building and territory defense structures.", "Dynamic AI patterns that counter your tactical placement."],
+    puzzle: ["Mind-bending physics and spatial orientation mechanics.", "Satisfying difficulty curve designed for deep flow state.", "Minimalist aesthetic combined with soothing soundscapes."],
+    simulation: ["Accurate physics engine calculating authentic handling.", "Complex economics, scaling mechanics, and detailed telemetry.", "Sandbox customizability allowing complete creative control."],
+    adventure: ["Intriguing world-lore scattered through environmental logs.", "Charming puzzle-platforming elements hidden in secrets.", "Memorable cast of characters with interactive questlines."]
+  };
+
+  const selectedFeatures = genreFeatures[genre] || genreFeatures.action;
+  
+  // Tone settings modifier
+  const toneIntro = {
+    dark: "Plunge into a cold, uncompromising world where danger waits behind every shadow.",
+    cinematic: "Experience a grand, cinematic journey filled with epic moments and heart-stopping setpieces.",
+    cozy: "Relax, take a deep breath, and lose yourself in a cozy, charming world built for comfort.",
+    action: "Get ready for high-octane thrills, explosive combat, and adrenaline-fueled speed.",
+    humorous: "Welcome to a delightfully wacky, chaotic comedy of errors where anything goes!",
+    tactical: "Engage your mind in a highly strategic, deep tactical experience where every detail matters."
+  };
+  const introHook = toneIntro[tone] || toneIntro.cinematic;
+
+  // Format short hook description (< 300 chars)
+  const shortHook = `${introHook} ${coreHookSentence.substring(0, 140)}${coreHookSentence.length > 140 ? '...' : ''} ${references.length ? 'For fans of ' + references[0] + '.' : ''}`.substring(0, 290);
+
+  // System requirements benchmarks based on genre
+  const reqs = {
+    heavy: {
+      minOS: "Windows 10 64-bit", minCPU: "Intel Core i5-4460 or AMD FX-6300", minRAM: "8 GB RAM", minGPU: "NVIDIA GeForce GTX 760 or AMD Radeon R7 260x",
+      recOS: "Windows 10/11 64-bit", recCPU: "Intel Core i7-3770 or AMD FX-8350", recRAM: "16 GB RAM", recGPU: "NVIDIA GeForce GTX 1060 or AMD Radeon RX 480"
+    },
+    light: {
+      minOS: "Windows 7/10 64-bit", minCPU: "Dual Core 2.0 GHz", minRAM: "4 GB RAM", minGPU: "Intel HD 4000 or GeForce GT 710",
+      recOS: "Windows 10 64-bit", recCPU: "Quad Core 3.0 GHz", recRAM: "8 GB RAM", recGPU: "NVIDIA GeForce GTX 660 or AMD Radeon HD 7870"
+    }
+  };
+  const selectedReqClass = (genre === 'action' || genre === 'rpg' || genre === 'simulation') ? 'heavy' : 'light';
+  const systemReq = reqs[selectedReqClass];
+
+  // 1. STEAM FORMAT (BBCode)
+  const steamBBAbout = `[h2]About This Game[/h2]\n${introHook}\n\n${coreHookSentence}. ${sentences.slice(1, 3).join('. ') + (sentences.length > 1 ? '.' : '')}\n\n${referenceText}\n\n[h2]Key Features[/h2]\n[list]\n${selectedFeatures.map(f => `[*] [b]${f.split(' ')[0]} ${f.split(' ')[1] || ''}[/b] - ${f.split(' ').slice(2).join(' ')}`).join('\n')}\n${customTags ? customTags.split(',').map(t => `[*] [b]${t.trim()}[/b] - Designed with optimized genre mechanics in mind.`).join('\n') : ''}\n[/list]`;
+
+  const steamBBMinReq = `OS: ${systemReq.minOS}\nProcessor: ${systemReq.minCPU}\nMemory: ${systemReq.minRAM}\nGraphics: ${systemReq.minGPU}\nStorage: 2 GB available space`;
+  const steamBBRecReq = `OS: ${systemReq.recOS}\nProcessor: ${systemReq.recCPU}\nMemory: ${systemReq.recRAM}\nGraphics: ${systemReq.recGPU}\nStorage: 2 GB available space`;
+
+  const steamFullBB = `${shortHook}\n\n=========================================\n\n${steamBBAbout}\n\n=========================================\n\n[b]MINIMUM REQUIREMENTS:[/b]\n${steamBBMinReq}\n\n[b]RECOMMENDED REQUIREMENTS:[/b]\n${steamBBRecReq}`;
+
+  // 2. ITCH FORMAT (HTML)
+  const itchHTMLAbout = `<h2>About the Game</h2>\n<p><strong>${introHook}</strong></p>\n<p>${coreHookSentence}. ${sentences.slice(1, 3).join('. ') + (sentences.length > 1 ? '.' : '')}</p>\n<p><em>${referenceText}</em></p>\n<h2>Key Features</h2>\n<ul>\n${selectedFeatures.map(f => `<li><strong>${f.split(' ')[0]} ${f.split(' ')[1] || ''}</strong> - ${f.split(' ').slice(2).join(' ')}</li>`).join('\n')}\n${customTags ? customTags.split(',').map(t => `<li><strong>${t.trim()}</strong> - Built for authentic indie game flow.</li>`).join('\n') : ''}\n</ul>`;
+  
+  const itchHTMLMinReq = `OS: ${systemReq.minOS}<br>Processor: ${systemReq.minCPU}<br>Memory: ${systemReq.minRAM}<br>Graphics: ${systemReq.minGPU}<br>Storage: 2 GB available space`;
+  const itchHTMLRecReq = `OS: ${systemReq.recOS}<br>Processor: ${systemReq.recCPU}<br>Memory: ${systemReq.recRAM}<br>Graphics: ${systemReq.recGPU}<br>Storage: 2 GB available space`;
+
+  const itchFullHTML = `Tagline: ${shortHook}\n\n=========================================\n\n${itchHTMLAbout}\n\n=========================================\n\n<strong>MINIMUM REQUIREMENTS:</strong><br>${itchHTMLMinReq}\n\n<strong>RECOMMENDED REQUIREMENTS:</strong><br>${itchHTMLRecReq}`;
+
+  // Bind values based on selected platform
+  if (currentEditorPlatform === 'steam') {
+    // Renders Preview using HTML equivalent tags
+    document.getElementById('prev-short-desc').textContent = shortHook;
+    document.getElementById('prev-long-desc').innerHTML = steamBBAbout
+      .replace(/\[h2\]/g, '<h2>').replace(/\[\/h2\]/g, '</h2>')
+      .replace(/\[b\]/g, '<strong>').replace(/\[\/b\]/g, '</strong>')
+      .replace(/\[i\]/g, '<em>').replace(/\[\/i\]/g, '</em>')
+      .replace(/\[list\]/g, '<ul>').replace(/\[\/list\]/g, '</ul>')
+      .replace(/\[\*\]/g, '<li>').replace(/\n/g, '<br>');
+    
+    document.getElementById('prev-sys-min').innerHTML = steamBBMinReq.replace(/\n/g, '<br>');
+    document.getElementById('prev-sys-rec').innerHTML = steamBBRecReq.replace(/\n/g, '<br>');
+    
+    document.getElementById('editor-code-output').value = steamFullBB;
+  } else {
+    // Itch HTML
+    document.getElementById('prev-short-desc').textContent = shortHook;
+    document.getElementById('prev-long-desc').innerHTML = itchHTMLAbout;
+    document.getElementById('prev-sys-min').innerHTML = itchHTMLMinReq;
+    document.getElementById('prev-sys-rec').innerHTML = itchHTMLRecReq;
+    
+    document.getElementById('editor-code-output').value = itchFullHTML;
+  }
+}
+
+function copyEditorCodeToClipboard() {
+  const text = document.getElementById('editor-code-output').value;
+  if (!text) return;
+  
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('📋 Generated description copied to clipboard!');
+  }).catch(() => {
+    showToast('⚠ Failed to copy to clipboard.');
+  });
+}

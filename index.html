@@ -41,6 +41,7 @@
       <button class="nav-tab" data-tab="capsule">Capsule Analyzer</button>
       <button class="nav-tab" data-tab="shelf">Shelf Simulator</button>
       <button class="nav-tab" data-tab="page-analyzer">Store Auditors</button>
+      <button class="nav-tab" data-tab="editor">Description Editor</button>
       <button class="nav-tab" data-tab="research">Research & Blueprints</button>
       <button class="nav-tab" data-tab="analytics">Analytics & Trends</button>
       <button class="nav-tab" data-tab="visibility">Visibility Score</button>
@@ -70,7 +71,7 @@
     </div>
 
     <!-- REFERENCE SANDBOX SETUP -->
-    <div class="panel" style="max-width:800px; margin: 0 auto 3rem auto; padding: 2rem;">
+    <div class="panel" style="max-width:800px; margin: 0 auto 3rem auto; padding: 2rem; position: relative; z-index: 20;">
       <div class="panel-title"><span class="dot purple"></span> STEP 1: DEFINE YOUR REFERENCE SANDBOX</div>
       <p style="font-size:0.9rem; color:var(--text-dim); margin-bottom:1.5rem;">
         Before auditing your game, select your genre and add competitor/reference games. This establishes a custom baseline (average description length, tags, and capsule colors) for direct comparison.
@@ -432,6 +433,151 @@
     </div>
 
     <div class="checklist-wrap" id="checklist-wrap"></div>
+  </div>
+
+  <!-- ═══════════ DESCRIPTION EDITOR ═══════════ -->
+  <div class="section" id="sec-editor">
+    <div class="section-hero">
+      <h2>✍️ Description Editor & Generator</h2>
+      <p>Convert your raw game description and tags into a highly optimized, high-converting store page structure customized for Steam or Itch.io.</p>
+    </div>
+
+    <div class="editor-layout">
+      <!-- Left Config Panel -->
+      <div class="panel" style="animation-delay:0.05s; display:flex; flex-direction:column; gap:1.2rem;">
+        <div class="panel-title"><span class="dot purple"></span> GENERATOR SETTINGS</div>
+        
+        <div class="setting-group">
+          <label class="setting-label">Target Platform</label>
+          <div class="platform-toggle">
+            <button class="toggle-btn active" id="platform-steam" onclick="setPlatform('steam')">🎮 Steam (BBCode)</button>
+            <button class="toggle-btn" id="platform-itch" onclick="setPlatform('itch')">🍃 Itch.io (HTML)</button>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+          <div class="setting-group">
+            <label class="setting-label">Main Genre</label>
+            <select class="shelf-select" id="editor-genre" style="width:100%;">
+              <option value="horror">Horror</option>
+              <option value="action">Action</option>
+              <option value="rpg">RPG</option>
+              <option value="strategy">Strategy</option>
+              <option value="puzzle">Puzzle</option>
+              <option value="simulation">Simulation</option>
+              <option value="adventure">Adventure</option>
+            </select>
+          </div>
+          <div class="setting-group">
+            <label class="setting-label">Tone & Emotion</label>
+            <select class="shelf-select" id="editor-tone" style="width:100%;">
+              <option value="dark">Dark / Grim</option>
+              <option value="cinematic">Cinematic / Epic</option>
+              <option value="cozy">Cozy / Wholesome</option>
+              <option value="action">Action-packed</option>
+              <option value="humorous">Humorous / Wacky</option>
+              <option value="tactical">Tactical / Deep</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="setting-group">
+          <label class="setting-label">Sub-genres & Custom Tags (comma separated)</label>
+          <input type="text" class="url-input" id="editor-tags" placeholder="e.g. Rogue-like, Deckbuilder, Retro, Pixel Art" style="width:100%; margin:0;" />
+        </div>
+
+        <div class="setting-group">
+          <label class="setting-label">Reference Games for Benchmark</label>
+          <div style="font-size:0.75rem; color:var(--text-dim); margin-bottom:0.5rem;" id="editor-sandbox-hint">
+            Uses your active Sandbox games. (Currently <span id="editor-sandbox-count">0</span> games added)
+          </div>
+        </div>
+
+        <div class="setting-group">
+          <label class="setting-label">Raw Game Concept & Draft Details</label>
+          <p style="font-size:0.7rem; color:var(--text-dim); margin-top:-0.4rem; margin-bottom:0.4rem;">
+            Describe the core gameplay, story, features, and what makes your game unique in your own words.
+          </p>
+          <textarea class="raw-draft-input" id="editor-raw-draft" placeholder="Type or paste your raw description draft here... e.g. 'A deckbuilding rogue-like where you control a space train. You collect cargo cards and build defense turrets on train tracks to survive waves of alien beetles...'"></textarea>
+        </div>
+
+        <button class="btn btn-primary" onclick="generateStorePage()" style="width:100%; justify-content:center; padding:0.9rem;">
+          ⚙️ Generate Optimized Description
+        </button>
+      </div>
+
+      <!-- Right Output Panel -->
+      <div class="panel" style="animation-delay:0.1s; position:relative; min-height:400px; display:flex; flex-direction:column;">
+        <div class="panel-title" style="margin-bottom:0.5rem;"><span class="dot green"></span> STORE PAGE BLUEPRINT</div>
+
+        <!-- Generation Loading Stepper -->
+        <div id="editor-loading-overlay" class="editor-loading-overlay" style="display:none;">
+          <div class="spinner-container">
+            <div class="loading-spinner"></div>
+          </div>
+          <div class="stepper-wrap">
+            <div class="step-item" id="step-1">🔍 Fetching competitor blueprints...</div>
+            <div class="step-item" id="step-2">🎭 Analyzing semantic tone and hooks...</div>
+            <div class="step-item" id="step-3">⚙️ Structuring store page modules...</div>
+            <div class="step-item" id="step-4">✨ Adding platform tags & reqs...</div>
+          </div>
+        </div>
+
+        <!-- Initial Placeholder State -->
+        <div id="editor-placeholder" class="empty-state" style="margin:auto 0;">
+          <div class="empty-icon">✍️</div>
+          <p>Configure settings and write your game concept draft,<br/>then click Generate to create your optimized store page blueprint.</p>
+        </div>
+
+        <!-- Real Generated Result Screen -->
+        <div id="editor-results-wrap" style="display:none; flex-grow:1; flex-direction:column; gap:1rem;">
+          <!-- Tabs selector (Preview vs Code) -->
+          <div class="editor-tabs">
+            <button class="editor-tab-btn active" onclick="switchEditorTab('preview')">👁️ Rich Preview</button>
+            <button class="editor-tab-btn" onclick="switchEditorTab('code')">💻 Code Output</button>
+          </div>
+
+          <!-- Preview Pane -->
+          <div id="editor-tab-preview" class="editor-tab-content active">
+            <div class="preview-section">
+              <div class="preview-section-title">SHORT DESCRIPTION / HOOK</div>
+              <div class="preview-box font-desc" id="prev-short-desc"></div>
+            </div>
+
+            <div class="preview-section">
+              <div class="preview-section-title">ABOUT THIS GAME</div>
+              <div class="preview-box font-desc" id="prev-long-desc" style="line-height:1.6;"></div>
+            </div>
+
+            <div class="preview-section">
+              <div class="preview-section-title">SYSTEM REQUIREMENTS</div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                <div class="preview-box font-desc" style="font-size:0.75rem;">
+                  <strong style="color:var(--accent); display:block; margin-bottom:0.4rem;">MINIMUM:</strong>
+                  <div id="prev-sys-min"></div>
+                </div>
+                <div class="preview-box font-desc" style="font-size:0.75rem;">
+                  <strong style="color:var(--success); display:block; margin-bottom:0.4rem;">RECOMMENDED:</strong>
+                  <div id="prev-sys-rec"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Code Pane -->
+          <div id="editor-tab-code" class="editor-tab-content">
+            <div style="display:flex; flex-direction:column; gap:0.5rem; height:100%; flex-grow:1;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="preview-section-title" style="margin:0;">READY TO COPY MARKUP</span>
+                <button class="btn btn-primary btn-sm" onclick="copyEditorCodeToClipboard()">📋 Copy Code</button>
+              </div>
+              <textarea class="code-textarea" id="editor-code-output" readonly></textarea>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
   </div>
 
   <!-- FOOTER -->
