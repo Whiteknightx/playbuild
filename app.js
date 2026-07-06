@@ -19,64 +19,150 @@ async function addReferenceGame() {
 
   showToast(`🔍 Resolving reference game: "${input}"...`);
   
-  let appId = '';
-  const isUrl = input.includes('steampowered.com/app/');
-  if (isUrl) {
-    const match = input.match(/\/app\/(\d+)/);
-    if (match) appId = match[1];
-  }
+  const isItchUrl = input.includes('itch.io');
+  const isSteamUrl = input.includes('steampowered.com/app/');
+  
+  const sourceSelect = document.getElementById('search-source');
+  const selectedSource = sourceSelect ? sourceSelect.value : 'all';
 
   try {
-    if (!appId) {
-      // Find App ID by name search
-      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent('https://store.steampowered.com/search/suggest?term=' + input + '&f=games&cc=US&realm=1&l=english')}`;
-      const res = await fetch(proxyUrl);
-      const data = await res.json();
-      
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(data.contents, 'text/html');
-      const firstLink = doc.querySelector('a');
-      if (firstLink) {
-         const linkUrl = firstLink.getAttribute('href');
-         const match = linkUrl ? linkUrl.match(/\/app\/(\d+)/) : null;
-         if (match) appId = match[1];
+    if (isSteamUrl || (!isItchUrl && (selectedSource === 'steam' || selectedSource === 'all'))) {
+      // STEAM RESOLUTION FLOW
+      let appId = '';
+      if (isSteamUrl) {
+        const match = input.match(/\/app\/(\d+)/);
+        if (match) appId = match[1];
       }
+
+      if (!appId) {
+        // Resolve by name search on Steam
+        const steamUrl = `https://store.steampowered.com/search/suggest?term=${encodeURIComponent(input)}&f=games&cc=US&realm=1&l=english`;
+        const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(steamUrl)}`;
+        const resText = await fetch(proxyUrl).then(r => r.text());
+        
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(resText, 'text/html');
+        const firstLink = doc.querySelector('a');
+        if (firstLink) {
+          const linkUrl = firstLink.getAttribute('href') || '';
+          const match = linkUrl.match(/\/app\/(\d+)/);
+          if (match) appId = match[1];
+        }
+      }
+
+      if (!appId) {
+        // If we also tried combined search, fallback to check Itch.io
+        if (selectedSource === 'all') {
+          return await resolveItchGame(input);
+        }
+        showToast(`⚠ Game "${input}" not found on Steam.`);
+        return;
+      }
+
+      if (sandboxGames.some(g => g.app_id === appId)) {
+        showToast('⚠ This game is already in your sandbox.');
+        return;
+      }
+
+      // Fetch Steam details
+      const pageProxyUrl = `https://corsproxy.io/?url=${encodeURIComponent('https://store.steampowered.com/api/appdetails?appids=' + appId)}`;
+      const pageRes = await fetch(pageProxyUrl);
+      const parsed = await pageRes.json();
+      const appData = parsed[appId].data;
+
+      if (!appData) {
+        showToast(`⚠ Failed to load detailed data for Steam game ID ${appId}`);
+        return;
+      }
+
+      const game = {
+        app_id: appId,
+        name: appData.name,
+        capsule_url: appData.header_image || `https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/${appId}/header.jpg`,
+        description_length: (appData.detailed_description || '').length,
+        screenshots: appData.screenshots ? appData.screenshots.length : 0,
+        tags_count: (appData.genres ? appData.genres.length : 0) + (appData.categories ? appData.categories.length : 0) + 8,
+        source: 'steam'
+      };
+
+      sandboxGames.push(game);
+      document.getElementById('sandbox-input').value = '';
+      renderSandboxList();
+      showToast(`✅ Added ${game.name} (Steam) to sandbox.`);
+
+    } else {
+      // ITCH.IO RESOLUTION FLOW
+      await resolveItchGame(input);
     }
-
-    if (!appId) {
-      showToast(`⚠ Game "${input}" not found on Steam.`);
-      return;
-    }
-
-    if (sandboxGames.some(g => g.app_id === appId)) {
-      showToast('⚠ This game is already in your sandbox.');
-      return;
-    }
-
-    // Fetch Details
-    const pageProxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent('https://store.steampowered.com/api/appdetails?appids=' + appId)}`;
-    const pageRes = await fetch(pageProxyUrl);
-    const pageData = await pageRes.json();
-    const parsed = JSON.parse(pageData.contents);
-    const appData = parsed[appId].data;
-
-    const game = {
-      app_id: appId,
-      name: appData.name,
-      capsule_url: appData.header_image || `https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/${appId}/header.jpg`,
-      description_length: (appData.detailed_description || '').length,
-      screenshots: appData.screenshots ? appData.screenshots.length : 0,
-      tags_count: (appData.genres ? appData.genres.length : 0) + (appData.categories ? appData.categories.length : 0) + 8
-    };
-
-    sandboxGames.push(game);
-    document.getElementById('sandbox-input').value = '';
-    renderSandboxList();
-    showToast(`✅ Added ${game.name} to sandbox.`);
   } catch (e) {
     showToast('⚠ Failed to fetch reference game details.');
     console.error(e);
   }
+}
+
+async function resolveItchGame(input) {
+  let gameUrl = '';
+  const isItchUrl = input.includes('itch.io');
+
+  if (isItchUrl) {
+    gameUrl = input;
+  } else {
+    // Search Itch by name to get URL
+    const searchUrl = `https://itch.io/search?q=${encodeURIComponent(input)}`;
+    const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(searchUrl)}`;
+    const resText = await fetch(proxyUrl).then(r => r.text());
+    
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(resText, 'text/html');
+    const firstGameLink = doc.querySelector('.game_cell .game_title a');
+    if (firstGameLink) {
+      gameUrl = firstGameLink.getAttribute('href') || '';
+    }
+  }
+
+  if (!gameUrl) {
+    showToast(`⚠ Game "${input}" not found on Itch.io.`);
+    return;
+  }
+
+  if (sandboxGames.some(g => g.app_id === gameUrl)) {
+    showToast('⚠ This game is already in your sandbox.');
+    return;
+  }
+
+  // Fetch Itch.io details
+  const pageProxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(gameUrl)}`;
+  const pageResText = await fetch(pageProxyUrl).then(r => r.text());
+  
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(pageResText, 'text/html');
+  
+  const titleEl = doc.querySelector('.game_title') || doc.querySelector('h1.title') || doc.querySelector('h1');
+  const gameName = titleEl ? titleEl.textContent.trim() : doc.title.split(' by ')[0];
+  
+  const ogImg = doc.querySelector('meta[property="og:image"]');
+  const capsuleUrl = ogImg ? ogImg.getAttribute('content') : (doc.querySelector('.header_image') ? doc.querySelector('.header_image').getAttribute('src') : `https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/460/header.jpg`);
+  
+  const descEl = doc.querySelector('.formatted_description') || doc.querySelector('.game_info_panel_widget') || doc.body;
+  const descriptionLength = descEl ? descEl.textContent.trim().length : 1200;
+  
+  const screenshotsCount = doc.querySelectorAll('.screenshot_grid img').length || doc.querySelectorAll('.screenshot_list img').length || 4;
+  const tagsCount = doc.querySelectorAll('.game_info_panel a').length || doc.querySelectorAll('.tag').length || 6;
+
+  const game = {
+    app_id: gameUrl,
+    name: gameName,
+    capsule_url: capsuleUrl,
+    description_length: descriptionLength,
+    screenshots: screenshotsCount,
+    tags_count: tagsCount,
+    source: 'itch'
+  };
+
+  sandboxGames.push(game);
+  document.getElementById('sandbox-input').value = '';
+  renderSandboxList();
+  showToast(`✅ Added ${game.name} (Itch.io) to sandbox.`);
 }
 
 function removeReferenceGame(appId) {
@@ -96,12 +182,17 @@ function renderSandboxList() {
   
   panel.style.display = 'block';
   container.innerHTML = sandboxGames.map(g => `
-    <div class="competitor-item" style="border: 1px solid var(--border); padding: 0.5rem; border-radius: 8px; position:relative;">
-      <button onclick="removeReferenceGame('${g.app_id}')" style="position:absolute; top:4px; right:4px; background:rgba(0,0,0,0.6); border:none; color:var(--text); cursor:pointer; padding:0.2rem 0.4rem; border-radius:4px; font-size:0.65rem;">✕</button>
-      <img class="competitor-img" src="${g.capsule_url}" alt="${g.name}" style="height:40px;"/>
-      <div class="competitor-info">
-        <div class="competitor-name" style="font-size:0.75rem;">${g.name}</div>
-        <div class="competitor-id" style="font-size:0.6rem;">App ID: ${g.app_id}</div>
+    <div class="competitor-item" style="position:relative; display:flex; align-items:center; gap:0.8rem; padding:0.8rem; background:var(--bg3); border:1px solid var(--border-light); border-radius:var(--radius);">
+      <button onclick="removeReferenceGame('${g.app_id}')" style="position:absolute; top:6px; right:6px; background:rgba(0,0,0,0.6); border:none; color:var(--text); cursor:pointer; padding:0.2rem 0.4rem; border-radius:4px; font-size:0.65rem; transition: background 0.2s;">✕</button>
+      <img class="competitor-img" src="${g.capsule_url}" alt="${g.name}" style="height:45px; width:96px; object-fit:cover; border-radius:4px; border:1px solid var(--border-light); flex-shrink:0;" onerror="this.src='https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/460/header.jpg'" />
+      <div class="competitor-info" style="flex:1; min-width:0; display:flex; flex-direction:column; gap:0.2rem;">
+        <div class="competitor-name" style="font-size:0.82rem; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding-right:16px;" title="${g.name}">
+          ${g.source === 'itch' ? '🍃' : '🎮'} ${g.name}
+        </div>
+        <div class="competitor-id" style="font-size:0.68rem; color:var(--text-dim); font-family:var(--font-mono);">
+          ${g.source === 'itch' ? 'Itch.io Game' : `App ID: ${g.app_id}`}
+        </div>
+      </div>
     </div>
   `).join('');
 
@@ -110,11 +201,11 @@ function renderSandboxList() {
   if (countEl) countEl.textContent = sandboxGames.length;
 }
 
-// ── STEAM-STYLE AUTOCOMPLETE SEARCH ──
+// ── MULTI-PROVIDER AUTOCOMPLETE SEARCH ──
 (function() {
   const AC_MAX_RESULTS = 4;
-  const AC_DEBOUNCE_MS = 150; // Lowered debounce for snappy response
-  const acCache = {}; // Simple client-side search cache
+  const AC_DEBOUNCE_MS = 150;
+  const acCache = {};
   let acTimers = {};
   let acActiveIndex = {};
 
@@ -135,7 +226,11 @@ function renderSandboxList() {
         return;
       }
 
-      acTimers[inputId] = setTimeout(() => fetchSuggestions(term, dropdown, input, dropdownId), AC_DEBOUNCE_MS);
+      const sourceSelectId = inputId === 'sandbox-input' ? 'search-source' : 'auditor-search-source';
+      const sourceSelect = document.getElementById(sourceSelectId);
+      const source = sourceSelect ? sourceSelect.value : 'all';
+
+      acTimers[inputId] = setTimeout(() => fetchSuggestions(term, dropdown, input, dropdownId, source), AC_DEBOUNCE_MS);
     });
 
     input.addEventListener('keydown', (e) => {
@@ -184,103 +279,116 @@ function renderSandboxList() {
     });
   }
 
-  async function fetchSuggestions(term, dropdown, input, dropdownId) {
-    const cacheKey = term.toLowerCase();
-    
-    // Check if we have results in local cache
-    if (acCache[cacheKey]) {
-      dropdown.innerHTML = acCache[cacheKey];
-      dropdown.classList.add('visible');
-      acActiveIndex[dropdownId] = -1;
-      bindClickHandlers(dropdown, input, dropdownId);
-      return;
-    }
-
-    dropdown.innerHTML = '<div class="ac-loading">Searching Steam…</div>';
-    dropdown.classList.add('visible');
-
+  async function searchSteam(term) {
     try {
       const steamUrl = `https://store.steampowered.com/search/suggest?term=${encodeURIComponent(term)}&f=games&cc=US&realm=1&l=english`;
       const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(steamUrl)}`;
-      const res = await fetch(proxyUrl);
-      const data = await res.json();
-
-      const parser = new DOMParser();
-      // corsproxy.io returns the raw content or JSON sometimes depending on content type
-      // but let's parse the string from response. Depending on format, we extract the html.
-      // If the response is JSON with a 'contents' key (like allorigins), or just raw text, let's handle both.
-      let htmlContent = '';
-      if (typeof data === 'string') {
-        htmlContent = data;
-      } else if (data && data.contents) {
-        htmlContent = data.contents;
-      } else if (data && typeof data === 'object') {
-        // Sometimes it returns the raw html directly as text, but since we parsed as JSON it might fail.
-        // Let's fallback to text if fetch failed to parse as JSON.
-      }
-
-      // If JSON parse succeeded but it's not JSON, let's handle that by catching and parsing as text
-      const doc = parser.parseFromString(htmlContent || '', 'text/html');
-      let links = doc.querySelectorAll('a');
-
-      // Fallback: if data wasn't in contents, maybe corsproxy.io returned the text directly.
-      // Let's modify the fetch to get text directly to be safer and faster!
-      // Actually, fetching as text is better because Steam suggest endpoint returns raw HTML.
-      // Let's fetch text directly:
-      // const resText = await fetch(proxyUrl).then(r => r.text());
-      // Let's change the code to do that!
-    } catch (e) {
-      // We will implement direct text fetching in the final replacement content below
-    }
-  }
-
-  // To be super safe and fast, let's write the fully optimized fetchSuggestions here:
-  async function fetchSuggestions(term, dropdown, input, dropdownId) {
-    const cacheKey = term.toLowerCase();
-    
-    if (acCache[cacheKey]) {
-      dropdown.innerHTML = acCache[cacheKey];
-      dropdown.classList.add('visible');
-      acActiveIndex[dropdownId] = -1;
-      bindClickHandlers(dropdown, input, dropdownId);
-      return;
-    }
-
-    dropdown.innerHTML = '<div class="ac-loading">Searching Steam…</div>';
-    dropdown.classList.add('visible');
-
-    try {
-      const steamUrl = `https://store.steampowered.com/search/suggest?term=${encodeURIComponent(term)}&f=games&cc=US&realm=1&l=english`;
-      const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(steamUrl)}`;
-      
       const resText = await fetch(proxyUrl).then(r => r.text());
+      
       const parser = new DOMParser();
       const doc = parser.parseFromString(resText || '', 'text/html');
       const links = doc.querySelectorAll('a');
-
-      if (!links.length) {
-        dropdown.innerHTML = '<div class="ac-loading">No games found</div>';
-        setTimeout(() => hideDropdown(dropdown, dropdownId), 1500);
-        return;
-      }
-
+      
       const results = [];
-      for (let i = 0; i < Math.min(links.length, AC_MAX_RESULTS); i++) {
-        const link = links[i];
+      links.forEach(link => {
         const href = link.getAttribute('href') || '';
         const appMatch = href.match(/\/app\/(\d+)/);
-        if (!appMatch) continue;
-
+        if (!appMatch) return;
+        
+        let targetUrl = href;
+        if (targetUrl.startsWith('/')) {
+          targetUrl = 'https://store.steampowered.com' + targetUrl;
+        }
+        
         const appId = appMatch[1];
         const nameEl = link.querySelector('.match_name');
         const imgEl = link.querySelector('img');
         const priceEl = link.querySelector('.match_subtitle');
-
+        
         const name = nameEl ? nameEl.textContent.trim() : 'Unknown';
         const img = imgEl ? (imgEl.getAttribute('src') || '') : `https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/${appId}/capsule_sm_120.jpg`;
-        const priceText = priceEl ? priceEl.textContent.trim() : '';
+        const priceText = priceEl ? priceEl.textContent.trim() : 'Free';
+        
+        results.push({
+          source: 'steam',
+          appId: appId,
+          name: name,
+          img: img,
+          priceText: priceText,
+          url: targetUrl
+        });
+      });
+      return results;
+    } catch (e) {
+      console.error('Steam search failed:', e);
+      return [];
+    }
+  }
 
-        results.push({ appId, name, img, priceText, url: href });
+  async function searchItch(term) {
+    try {
+      const itchUrl = `https://itch.io/search?q=${encodeURIComponent(term)}`;
+      const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(itchUrl)}`;
+      const resText = await fetch(proxyUrl).then(r => r.text());
+      
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(resText || '', 'text/html');
+      const gameCells = doc.querySelectorAll('.game_cell');
+      
+      const results = [];
+      gameCells.forEach(cell => {
+        const linkEl = cell.querySelector('.game_title a');
+        const imgEl = cell.querySelector('.game_thumb img');
+        const priceEl = cell.querySelector('.price_value');
+        const discountEl = cell.querySelector('.sale_tag');
+        
+        if (linkEl) {
+          const url = linkEl.getAttribute('href') || '';
+          const name = linkEl.textContent.trim();
+          const img = imgEl ? (imgEl.getAttribute('data-lazy_src') || imgEl.getAttribute('src') || '') : '';
+          const priceText = priceEl ? priceEl.textContent.trim() : 'Free';
+          const discount = discountEl ? discountEl.textContent.trim() : '';
+          
+          results.push({
+            source: 'itch',
+            appId: url,
+            name: name,
+            img: img,
+            priceText: discount ? `${discount} ${priceText}` : priceText,
+            url: url
+          });
+        }
+      });
+      return results;
+    } catch (e) {
+      console.error('Itch search failed:', e);
+      return [];
+    }
+  }
+
+  async function fetchSuggestions(term, dropdown, input, dropdownId, source) {
+    const cacheKey = `${source}:${term.toLowerCase()}`;
+    
+    if (acCache[cacheKey]) {
+      dropdown.innerHTML = acCache[cacheKey];
+      dropdown.classList.add('visible');
+      acActiveIndex[dropdownId] = -1;
+      bindClickHandlers(dropdown, input, dropdownId);
+      return;
+    }
+
+    dropdown.innerHTML = `<div class="ac-loading">Searching ${source === 'all' ? 'Steam & Itch' : source === 'steam' ? 'Steam' : 'Itch.io'}…</div>`;
+    dropdown.classList.add('visible');
+
+    try {
+      let results = [];
+      if (source === 'steam') {
+        results = await searchSteam(term);
+      } else if (source === 'itch') {
+        results = await searchItch(term);
+      } else {
+        const [steamRes, itchRes] = await Promise.all([searchSteam(term), searchItch(term)]);
+        results = [...steamRes.slice(0, 3), ...itchRes.slice(0, 3)];
       }
 
       if (!results.length) {
@@ -293,16 +401,19 @@ function renderSandboxList() {
       results.forEach((r) => {
         const priceHtml = formatPrice(r.priceText);
         html += `
-          <div class="ac-item" data-appid="${r.appId}" data-name="${r.name.replace(/"/g, '&quot;')}" data-url="${r.url}">
-            <img class="ac-img" src="${r.img}" alt="" loading="lazy" onerror="this.src='https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/${r.appId}/header.jpg'" />
+          <div class="ac-item" data-name="${r.name.replace(/"/g, '&quot;')}" data-url="${r.url}">
+            <img class="ac-img" src="${r.img}" alt="" loading="lazy" onerror="this.src='https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/460/header.jpg'" />
             <div class="ac-info">
-              <div class="ac-name">${r.name}</div>
+              <div class="ac-name" style="display:flex; align-items:center; gap:0.3rem;">
+                <span class="ac-source-badge ${r.source}" style="font-size:0.62rem; font-weight:700; padding:2px 5px; border-radius:3px; text-transform:uppercase; letter-spacing:0.05em; flex-shrink:0; background:${r.source === 'itch' ? 'rgba(250,92,92,0.15)' : 'rgba(102,143,182,0.2)'}; color:${r.source === 'itch' ? '#fa5c5c' : '#668fb6'};">${r.source === 'itch' ? '🍃 Itch' : '🎮 Steam'}</span>
+                <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${r.name}</span>
+              </div>
               <div class="ac-price">${priceHtml}</div>
             </div>
           </div>`;
       });
 
-      acCache[cacheKey] = html; // Save to local memory cache
+      acCache[cacheKey] = html;
       dropdown.innerHTML = html;
       acActiveIndex[dropdownId] = -1;
       bindClickHandlers(dropdown, input, dropdownId);
@@ -317,14 +428,9 @@ function renderSandboxList() {
   function bindClickHandlers(dropdown, input, dropdownId) {
     dropdown.querySelectorAll('.ac-item').forEach(item => {
       item.addEventListener('click', () => {
-        const name = item.dataset.name;
-        const appId = item.dataset.appid;
-        const steamUrl = `https://store.steampowered.com/app/${appId}/`;
-        input.value = steamUrl;
+        input.value = item.dataset.url;
         hideDropdown(dropdown, dropdownId);
         input.focus();
-        
-        // Trigger input event to update other states if needed
         input.dispatchEvent(new Event('change'));
       });
     });
@@ -334,17 +440,14 @@ function renderSandboxList() {
     if (!raw) return 'Free';
     const text = raw.trim();
     if (text.toLowerCase() === 'free' || text.toLowerCase() === 'free to play' || text === '') return 'Free';
-    // Check for discount pattern like "-70% $29.99 $8.99"
     const discountMatch = text.match(/(-?\d+%)\s+[\$€£]?([\d,.]+)\s+[\$€£]?([\d,.]+)/);
     if (discountMatch) {
       return `<span class="ac-discount">${discountMatch[1]}</span><span class="ac-original">$${discountMatch[2]}</span>$${discountMatch[3]}`;
     }
-    // Simple price
     if (text.match(/[\$€£]?[\d,.]+/)) return text;
     return text || 'Free';
   }
 
-  // Initialize on DOM ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
       initAutocomplete('sandbox-input', 'sandbox-ac-dropdown');

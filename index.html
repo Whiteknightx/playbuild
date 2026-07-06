@@ -94,12 +94,17 @@
           
           <div style="display:flex; flex-direction:column; gap:0.4rem; flex-grow:1; min-width:250px;">
             <label style="font-size:0.75rem; font-weight:700; color:var(--text-dim);">ADD REFERENCE GAME (NAME OR STEAM URL)</label>
-            <div style="display:flex; gap:0.5rem;">
-              <div class="autocomplete-wrapper">
+            <div style="display:flex; gap:0.5rem; width:100%; flex-wrap:nowrap;">
+              <select class="shelf-select" id="search-source" style="padding:0.7rem; min-width:120px; width:auto; margin:0; flex-shrink:0;">
+                <option value="all">🌐 Combined</option>
+                <option value="steam">🎮 Steam</option>
+                <option value="itch">🍃 Itch.io</option>
+              </select>
+              <div class="autocomplete-wrapper" style="flex-grow:1;">
                 <input type="text" class="url-input" id="sandbox-input" placeholder="e.g. Hades, Dead Cells, or Steam URL" style="margin:0; width:100%;" autocomplete="off" />
                 <div class="autocomplete-dropdown" id="sandbox-ac-dropdown"></div>
               </div>
-              <button class="btn btn-primary" onclick="addReferenceGame()" style="white-space:nowrap;">➕ Add</button>
+              <button class="btn btn-primary" onclick="addReferenceGame()" style="white-space:nowrap; flex-shrink:0;">➕ Add</button>
             </div>
           </div>
         </div>
@@ -225,11 +230,16 @@
     </div>
 
     <div class="page-analyzer-input">
-      <div class="autocomplete-wrapper">
+      <select class="shelf-select" id="auditor-search-source" style="padding:0.7rem; min-width:120px; width:auto; margin:0; flex-shrink:0;">
+        <option value="all">🌐 Combined</option>
+        <option value="steam">🎮 Steam</option>
+        <option value="itch">🍃 Itch.io</option>
+      </select>
+      <div class="autocomplete-wrapper" style="flex-grow:1;">
         <input type="text" class="url-input" id="steam-url" placeholder="Steam URL, Itch.io URL, or Game Name..." autocomplete="off" />
         <div class="autocomplete-dropdown" id="steam-ac-dropdown"></div>
       </div>
-      <button class="btn btn-primary" id="analyze-page-btn" onclick="analyzePage()">🔍 Analyze</button>
+      <button class="btn btn-primary" id="analyze-page-btn" onclick="analyzePage()" style="white-space:nowrap; flex-shrink:0;">🔍 Analyze</button>
     </div>
 
     <div id="page-results">
